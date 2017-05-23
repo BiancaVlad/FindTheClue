@@ -4,16 +4,9 @@
     android:layout_width="fill_parent"
     android:layout_height="fill_parent"
     android:layout_margin="2dip"
-    tools:context="com.dissertation.findtheclue.GamesListActivity"
+    tools:context="com.dissertation.findtheclue.TopTeamsActivity"
     android:weightSum="1.0"
     android:orientation="vertical">
-
-    <android.support.v7.widget.AppCompatSpinner
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_weight="0.05">
-
-    </android.support.v7.widget.AppCompatSpinner>
 
     <android.support.v4.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
         xmlns:app="http://schemas.android.com/apk/res-auto"
@@ -21,9 +14,9 @@
         android:layout_width="fill_parent"
         android:layout_height="0dp"
         app:layout_behavior="@string/appbar_scrolling_view_behavior"
-        tools:context="com.dissertation.findtheclue.GamesListActivity"
-        tools:showIn="@layout/activity_games_list"
-        android:layout_weight="0.95">
+        tools:context="com.dissertation.findtheclue.TopTeamsActivity"
+        tools:showIn="@layout/activity_top_teams"
+        android:layout_weight="1">
         <ListView
             android:id="@android:id/list"
             android:layout_width="match_parent"

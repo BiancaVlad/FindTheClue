@@ -40,7 +40,9 @@
         <activity android:name=".QuestionActivity" />
         <activity android:name=".GamesListActivity" />
         <activity android:name=".PlayGameActivity" />
-        <activity android:name=".EndGameActivity"></activity>
+        <activity android:name=".EndGameActivity" />
+        <activity android:name=".TeamActivity" />
+        <activity android:name=".TopTeamsActivity"></activity>
     </application>
 
 </manifest>
