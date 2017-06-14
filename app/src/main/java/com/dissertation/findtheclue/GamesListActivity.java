@@ -3,6 +3,8 @@ package com.dissertation.findtheclue;
 import android.app.Fragment;
 import android.app.ProgressDialog;
 import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.os.AsyncTask;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
@@ -16,10 +18,13 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import java.io.ByteArrayInputStream;
 
 import model.GamesAdapter;
 import model.GamesContent;
@@ -54,8 +59,6 @@ public class GamesListActivity extends AppCompatActivity {
 
         mRecyclerView = (RecyclerView) findViewById(R.id.gamesRecyclerView);
 
-        //gamesItems= new GamesContent.GameItem[GamesContent.ITEMS.size()];
-        //gamesItems = GamesContent.ITEMS.toArray(gamesItems);
         mAdapter = new GamesAdapter(GamesContent.ITEMS);
         mLinearLayoutManager = new LinearLayoutManager(this);
         mRecyclerView.setLayoutManager(mLinearLayoutManager);
@@ -70,21 +73,19 @@ public class GamesListActivity extends AppCompatActivity {
             if (jsonStr != null) {
                 try {
                     // Getting JSON Array node
-                    JSONArray contacts = new JSONArray(jsonStr);
+                    JSONArray games = new JSONArray(jsonStr);
 
-                    // looping through All Contacts
-                    for (int i = 0; i < contacts.length(); i++) {
-                        JSONObject c = contacts.getJSONObject(i);
+                    for (int i = 0; i < games.length(); i++) {
+                        JSONObject g = games.getJSONObject(i);
 
-                        String id = c.getString(TAG_ID);
-                        String name = c.getString(TAG_NAME);
-                        String country = c.getString(TAG_COUNTRY);
-                        String city = c.getString(TAG_CITY);
-                        String difficulty = c.getString(TAG_DIFFICULTY);
-                        String rating = c.getString(TAG_RATING);
-                        String picture = new String();
-                       // String picture = c.getString(TAG_PICTURE);
-                        String duration = c.getString(TAG_DURATION);
+                        String id = g.getString(TAG_ID);
+                        String name = g.getString(TAG_NAME);
+                        String country = g.getString(TAG_COUNTRY);
+                        String city = g.getString(TAG_CITY);
+                        String difficulty = g.getString(TAG_DIFFICULTY);
+                        String rating = g.getString(TAG_RATING);
+                        String picture = g.getString(TAG_PICTURE);
+                        String duration = g.getString(TAG_DURATION);
 
                         GamesContent.ITEMS.add(new GamesContent.GameItem(Integer.parseInt(id), name, country, city, Integer.parseInt(difficulty), Double.parseDouble(rating), picture, Integer.parseInt(duration)));
                     }
@@ -100,14 +101,14 @@ public class GamesListActivity extends AppCompatActivity {
         //new GetGames().execute();
     }
 
+
+
     @Override
     public View onCreateView(View parent, String name, @NonNull Context context, @NonNull AttributeSet attrs) {
         View result = super.onCreateView(parent, name, context, attrs);
 
         gamesItems= new GamesContent.GameItem[GamesContent.ITEMS.size()];
         gamesItems = GamesContent.ITEMS.toArray(gamesItems);
-
-       // GamesAdapter adapter = new GameAdapter
 
         return result;
     }
@@ -140,6 +141,5 @@ public class GamesListActivity extends AppCompatActivity {
             nDialog.dismiss();
             //showProgress(false);
         }
-
     }
 }

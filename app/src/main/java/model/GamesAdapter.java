@@ -1,6 +1,9 @@
 package model;
 
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.support.v7.widget.RecyclerView;
+import android.util.Base64;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -9,6 +12,9 @@ import android.widget.TextView;
 
 import com.dissertation.findtheclue.R;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.nio.ByteBuffer;
 import java.util.List;
 
 /**
@@ -20,15 +26,14 @@ public class GamesAdapter extends RecyclerView.Adapter<GamesAdapter.MyViewHolder
     public class MyViewHolder extends  RecyclerView.ViewHolder
     {
         public ImageView gamePicture;
-        public TextView gameName, gameLocation, gameDifficulty, gameDuration;
+        public TextView gameName, gameLocation, gameDifficulty;
 
         public MyViewHolder(View view) {
             super(view);
-            //gamePicture = (ImageView) view.findViewById(R.id.game_picture);
+            gamePicture = (ImageView) view.findViewById(R.id.game_picture);
             gameName = (TextView) view.findViewById(R.id.game_name);
             gameLocation = (TextView) view.findViewById(R.id.game_location);
             gameDifficulty = (TextView) view.findViewById(R.id.game_difficulty);
-            gameDuration = (TextView) view.findViewById(R.id.game_duration);
         }
     }
 
@@ -47,12 +52,46 @@ public class GamesAdapter extends RecyclerView.Adapter<GamesAdapter.MyViewHolder
     @Override
     public void onBindViewHolder(MyViewHolder holder, int position) {
         GamesContent.GameItem game = gameItems.get(position);
-        //to-do  get pic from byte array
-        //holder.gamePicture.setImageBitmap(game.getPicture());
+
+        byte[] decodedByte = Base64.decode(game.getPicture(), Base64.DEFAULT);
+        Bitmap bmp = BitmapFactory.decodeByteArray(decodedByte, 0, decodedByte.length);
+
+        holder.gamePicture.setImageBitmap(bmp);
         holder.gameName.setText(game.getName());
         holder.gameLocation.setText(game.getCity());
-        holder.gameDifficulty.setText(Integer.toString(game.getDifficulty()));
-        holder.gameDuration.setText(Integer.toString(game.getDuration()));
+
+        String level = this.GetDifficulty(game.getDifficulty());
+        String time = this.GetDuration(game.getDuration());
+        holder.gameDifficulty.setText(level + " - " + time);
+    }
+
+    private String GetDifficulty(int difficulty)
+    {
+        switch (difficulty)
+        {
+            case 1: return "Beginner";
+            case 2: return "Amateur";
+            case 3: return "Intermediate";
+            case 4: return "Advanced";
+            default: return "Expert";
+        }
+    }
+
+    private String GetDuration(int duration)
+    {
+        if(duration < 60)
+        {
+            return Integer.toString(duration) + "m";
+        }
+
+        if(duration % 60 == 0)
+        {
+            return Integer.toString(duration/60) + "h";
+        }
+
+        int hours = duration/60;
+        int mins = duration - (hours * 60);
+        return Integer.toString(hours) + "h " + Integer.toString(mins) + "m";
     }
 
     @Override
