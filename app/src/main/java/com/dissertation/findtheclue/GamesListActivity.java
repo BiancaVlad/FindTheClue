@@ -3,6 +3,7 @@ package com.dissertation.findtheclue;
 import android.app.Fragment;
 import android.app.ProgressDialog;
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.AsyncTask;
@@ -14,11 +15,13 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.text.TextUtils;
 import android.util.AttributeSet;
+import android.util.Base64;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.Toast;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -33,13 +36,14 @@ import utils.ServiceHandler;
 public class GamesListActivity extends AppCompatActivity {
 
     // URL to get contacts JSON
-    private static String url = "http://findtheclue.azurewebsites.net/api/Games";
+    private static String url = "http://findtheclue.azurewebsites.net/api/games";
 
     //to do: add the names of the table columns
     // JSON Node names
     private static final String TAG_ID = "id_game";
     private static final String TAG_NAME = "name";
     private static final String TAG_COUNTRY = "country";
+    private static final String TAG_DESCRIPTION = "description";
     private static final String TAG_CITY = "city";
     private static final String TAG_DIFFICULTY = "difficulty";
     private static final String TAG_RATING = "rating";
@@ -64,6 +68,30 @@ public class GamesListActivity extends AppCompatActivity {
         mRecyclerView.setLayoutManager(mLinearLayoutManager);
         mRecyclerView.setItemAnimator(new DefaultItemAnimator());
         mRecyclerView.setAdapter(mAdapter);
+        mRecyclerView.addOnItemTouchListener(new RecyclerTouch.RecyclerTouchListener(getApplicationContext(), mRecyclerView, new RecyclerTouch.ClickListener() {
+            @Override
+            public void onClick(View view, int position) {
+                GamesContent.GameItem game = GamesContent.ITEMS.get(position);
+                Intent intent=new Intent(view.getContext(), PlayGameActivity.class);
+                intent.putExtra("gameId", game.getId_game());
+                intent.putExtra("gameName", game.getName());
+                intent.putExtra("gameCity", game.getCity());
+                intent.putExtra("gameCountry", game.getCountry());
+                intent.putExtra("gameDescription", game.getDescription());
+                intent.putExtra("gameDifficulty", GamesAdapter.GetDifficulty(game.getDifficulty()));
+                intent.putExtra("gameDuration", GamesAdapter.GetDuration(game.getDuration()));
+                byte[] decodedByte = Base64.decode(game.getPicture(), Base64.DEFAULT);
+                intent.putExtra("gamePicture", decodedByte);
+                intent.putExtra("gameRating", game.getRating());
+                view.getContext().startActivity(intent);
+                //startActivity(intent);
+                //finish();
+            }
+            @Override
+            public void onLongClick(View view, int position) {
+
+            }
+        }));
 
         ServiceHandler sh = new ServiceHandler();
         if(GamesContent.ITEMS.isEmpty()) {
@@ -82,12 +110,13 @@ public class GamesListActivity extends AppCompatActivity {
                         String name = g.getString(TAG_NAME);
                         String country = g.getString(TAG_COUNTRY);
                         String city = g.getString(TAG_CITY);
+                        String description = g.getString(TAG_DESCRIPTION);
                         String difficulty = g.getString(TAG_DIFFICULTY);
                         String rating = g.getString(TAG_RATING);
                         String picture = g.getString(TAG_PICTURE);
                         String duration = g.getString(TAG_DURATION);
 
-                        GamesContent.ITEMS.add(new GamesContent.GameItem(Integer.parseInt(id), name, country, city, Integer.parseInt(difficulty), Double.parseDouble(rating), picture, Integer.parseInt(duration)));
+                        GamesContent.ITEMS.add(new GamesContent.GameItem(Integer.parseInt(id), name, country, city, description, Integer.parseInt(difficulty), Double.parseDouble(rating), picture, Integer.parseInt(duration)));
                     }
 
                     mAdapter.notifyDataSetChanged();
@@ -98,10 +127,7 @@ public class GamesListActivity extends AppCompatActivity {
                 Log.e("utils.ServiceHandler", "Couldn't get any data from the url");
             }
         }
-        //new GetGames().execute();
     }
-
-
 
     @Override
     public View onCreateView(View parent, String name, @NonNull Context context, @NonNull AttributeSet attrs) {
