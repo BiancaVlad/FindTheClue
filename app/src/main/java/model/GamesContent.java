@@ -39,11 +39,13 @@ public class GamesContent {
         private double rating;
         private String picture;
         private int duration;
+        private String description;
 
-        public GameItem(int id_game, String name, String country, String city, int difficulty, double rating, String picture, int duration) {
+        public GameItem(int id_game, String name, String country, String city, String description, int difficulty, double rating, String picture, int duration) {
             this.id_game = id_game;
             this.name = name;
             this.country = country;
+            this.description = description;
             this.city = city;
             this.difficulty = difficulty;
             this.rating = rating;
@@ -65,6 +67,14 @@ public class GamesContent {
 
         public void setName(String name) {
             this.name = name;
+        }
+
+        public String getDescription() {
+            return description;
+        }
+
+        public void setDescription(String description) {
+            this.description = description;
         }
 
         public String getCountry() {

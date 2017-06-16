@@ -55,8 +55,8 @@ public class GamesAdapter extends RecyclerView.Adapter<GamesAdapter.MyViewHolder
 
         byte[] decodedByte = Base64.decode(game.getPicture(), Base64.DEFAULT);
         Bitmap bmp = BitmapFactory.decodeByteArray(decodedByte, 0, decodedByte.length);
-
         holder.gamePicture.setImageBitmap(bmp);
+
         holder.gameName.setText(game.getName());
         holder.gameLocation.setText(game.getCity());
 
@@ -65,7 +65,7 @@ public class GamesAdapter extends RecyclerView.Adapter<GamesAdapter.MyViewHolder
         holder.gameDifficulty.setText(level + " - " + time);
     }
 
-    private String GetDifficulty(int difficulty)
+    public static String GetDifficulty(int difficulty)
     {
         switch (difficulty)
         {
@@ -77,7 +77,7 @@ public class GamesAdapter extends RecyclerView.Adapter<GamesAdapter.MyViewHolder
         }
     }
 
-    private String GetDuration(int duration)
+    public static String GetDuration(int duration)
     {
         if(duration < 60)
         {
