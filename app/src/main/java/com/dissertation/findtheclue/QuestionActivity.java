@@ -47,7 +47,7 @@ public class QuestionActivity extends AppCompatActivity
                 else
                 {
                     Intent intent = new Intent(v.getContext(), EndGameActivity.class);
-                    //QuestionContent.questionCounter = 0;
+                    intent.putExtra("gameId", QuestionContent.ITEMS.get(QuestionContent.questionCounter).getGameId());
                     v.getContext().startActivity(intent);
                 }
             }

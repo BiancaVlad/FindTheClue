@@ -60,9 +60,11 @@ public class PlayGameActivity extends AppCompatActivity {
         playButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                QuestionContent.questionCounter = 0;
-                Intent intent=new Intent(v.getContext(), QuestionActivity.class);
-                v.getContext().startActivity(intent);
+                if(QuestionContent.ITEMS.size() > 0) {
+                    QuestionContent.questionCounter = 0;
+                    Intent intent = new Intent(v.getContext(), QuestionActivity.class);
+                    v.getContext().startActivity(intent);
+                }
             }
         });
 

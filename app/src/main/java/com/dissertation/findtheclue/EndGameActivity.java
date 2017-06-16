@@ -9,28 +9,52 @@ import android.widget.RatingBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import model.GamesAdapter;
+import model.GamesContent;
+
 public class EndGameActivity extends AppCompatActivity {
 
-    //final private RatingBar ratingBar;
+    private RatingBar ratingBar;
+    private double ratingValue;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_end_game);
 
-        final RatingBar showRatingBar = (RatingBar) findViewById(R.id.end_game_rating);
-        showRatingBar.setEnabled(true);
-        showRatingBar.setClickable(true);
-        showRatingBar.setRating(0);
-        showRatingBar.setOnRatingBarChangeListener(new RatingBar.OnRatingBarChangeListener() {
+        ratingBar = (RatingBar) findViewById(R.id.end_game_rating);
+        ratingBar.setEnabled(true);
+        ratingBar.setClickable(true);
 
-            @Override
-            public void onRatingChanged(RatingBar ratingBar, float rating, boolean fromUser) {
+        if (getIntent().hasExtra("gameId"))
+        {
+            int gameID = getIntent().getIntExtra("gameId", 0);
+            if(gameID != 0)
+            {
+                for (GamesContent.GameItem item: GamesContent.ITEMS) {
+                    if(item.getId_game() == gameID)
+                    {
+                        ratingValue = item.getRating();
+                    }
+                }
+            }
+            else
+            {
+                ratingValue = 0;
+            }
+        }
 
-                String rateValue = String.valueOf(showRatingBar.getRating());
-                System.out.println("Rate for Module is"+rateValue);
+        ratingBar.setRating((float)ratingValue);
+
+        // Set ChangeListener to Rating Bar
+        ratingBar.setOnRatingBarChangeListener(new RatingBar.OnRatingBarChangeListener() {
+            public void onRatingChanged(RatingBar ratingBar, float rating,
+                                        boolean fromUser) {
+                ratingBar.setRating((float)ratingValue + rating / 5);
+                Toast.makeText(getApplicationContext(),"Your Selected Ratings  : " + String.valueOf(rating),Toast.LENGTH_LONG).show();
             }
         });
+
     }
 
 }
