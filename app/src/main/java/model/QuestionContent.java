@@ -8,7 +8,7 @@ import java.util.Map;
 public class QuestionContent {
 
     public static List<QuestionItem> ITEMS = new ArrayList<>();
-
+    public static int questionCounter;
     /**
      * A map of sample (GameItem) items, by ID.
      */

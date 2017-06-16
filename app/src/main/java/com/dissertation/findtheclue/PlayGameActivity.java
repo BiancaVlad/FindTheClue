@@ -1,8 +1,10 @@
 package com.dissertation.findtheclue;
 
+import android.app.ProgressDialog;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.os.AsyncTask;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Base64;
@@ -17,6 +19,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import model.GamesContent;
 import model.QuestionContent;
 import utils.ServiceHandler;
 
@@ -51,16 +54,45 @@ public class PlayGameActivity extends AppCompatActivity {
         setContentView(R.layout.activity_play_game);
 
         this.setViews();
-        this.getQuestions(getIntent().getIntExtra(TAG_ID, 0));
+
         playButton = (Button) findViewById(R.id.play_button);
 
         playButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent=new Intent(PlayGameActivity.this, QuestionActivity.class);
-                startActivity(intent);
+                QuestionContent.questionCounter = 0;
+                Intent intent=new Intent(v.getContext(), QuestionActivity.class);
+                v.getContext().startActivity(intent);
             }
         });
+
+        //new GetQuestionsForGame().execute();
+    }
+
+    @Override
+    protected void onResume()
+    {
+        super.onResume();
+        new GetQuestionsForGame().execute();
+    }
+
+    private class GetQuestionsForGame extends AsyncTask<Void, Void, Void> {
+
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+        }
+
+        @Override
+        protected Void doInBackground(Void... arg0) {
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(Void result)
+        {
+            getQuestions(getIntent().getIntExtra(TAG_ID, 0));
+        }
     }
 
     private void setViews() {
@@ -128,7 +160,7 @@ public class PlayGameActivity extends AppCompatActivity {
         }
     }
 
-    private void getQuestions(int id)
+    protected void getQuestions(int id)
     {
         ServiceHandler sh = new ServiceHandler();
 
