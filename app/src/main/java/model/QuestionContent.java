@@ -9,6 +9,7 @@ public class QuestionContent {
 
     public static List<QuestionItem> ITEMS = new ArrayList<>();
     public static int questionCounter;
+    public static double score = 0;
     /**
      * A map of sample (GameItem) items, by ID.
      */

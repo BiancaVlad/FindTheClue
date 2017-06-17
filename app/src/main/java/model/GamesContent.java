@@ -1,5 +1,7 @@
 package model;
 
+import com.google.android.gms.games.Game;
+
 import java.io.ByteArrayInputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -29,6 +31,18 @@ public class GamesContent {
         return names;
     }
 
+    public static GameItem getGameById(int gameID)
+    {
+        for (GamesContent.GameItem item: GamesContent.ITEMS) {
+            if(item.getId_game() == gameID)
+            {
+                return item;
+            }
+        }
+
+        return null;
+    }
+
     public static class GameItem
     {
         private int id_game;
@@ -37,11 +51,12 @@ public class GamesContent {
         private String city;
         private int difficulty;
         private double rating;
+        private int rating_counter;
         private String picture;
         private int duration;
         private String description;
 
-        public GameItem(int id_game, String name, String country, String city, String description, int difficulty, double rating, String picture, int duration) {
+        public GameItem(int id_game, String name, String country, String city, String description, int difficulty, double rating, int rating_counter, String picture, int duration) {
             this.id_game = id_game;
             this.name = name;
             this.country = country;
@@ -49,6 +64,7 @@ public class GamesContent {
             this.city = city;
             this.difficulty = difficulty;
             this.rating = rating;
+            this.rating_counter = rating_counter;
             this.picture = picture;
             this.duration = duration;
         }
@@ -109,6 +125,10 @@ public class GamesContent {
             this.rating = rating;
         }
 
+        public int getRatingCounter() {return rating_counter; }
+
+        public void setRatingCounter(int rating_counter) {this.rating_counter = rating_counter; }
+
         public String getPicture() {
             return picture;
         }
@@ -121,7 +141,7 @@ public class GamesContent {
             return duration;
         }
 
-        public void setRating(int duration) {
+        public void setDuration(int duration) {
             this.duration = duration;
         }
 

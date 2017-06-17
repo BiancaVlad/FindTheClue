@@ -38,7 +38,6 @@ public class GamesListActivity extends AppCompatActivity {
     // URL to get contacts JSON
     private static String url = "http://findtheclue.azurewebsites.net/api/games";
 
-    //to do: add the names of the table columns
     // JSON Node names
     private static final String TAG_ID = "id_game";
     private static final String TAG_NAME = "name";
@@ -47,6 +46,7 @@ public class GamesListActivity extends AppCompatActivity {
     private static final String TAG_CITY = "city";
     private static final String TAG_DIFFICULTY = "difficulty";
     private static final String TAG_RATING = "rating";
+    private static final String TAG_RATING_COUNTER = "rating_counter";
     private static final String TAG_PICTURE = "picture";
     private static final String TAG_DURATION = "duration";
 
@@ -83,6 +83,7 @@ public class GamesListActivity extends AppCompatActivity {
                 byte[] decodedByte = Base64.decode(game.getPicture(), Base64.DEFAULT);
                 intent.putExtra("gamePicture", decodedByte);
                 intent.putExtra("gameRating", game.getRating());
+                intent.putExtra("gameRatingCounter", game.getRatingCounter());
                 view.getContext().startActivity(intent);
                 //startActivity(intent);
                 //finish();
@@ -113,10 +114,11 @@ public class GamesListActivity extends AppCompatActivity {
                         String description = g.getString(TAG_DESCRIPTION);
                         String difficulty = g.getString(TAG_DIFFICULTY);
                         String rating = g.getString(TAG_RATING);
+                        String ratingCounter = g.getString(TAG_RATING_COUNTER);
                         String picture = g.getString(TAG_PICTURE);
                         String duration = g.getString(TAG_DURATION);
 
-                        GamesContent.ITEMS.add(new GamesContent.GameItem(Integer.parseInt(id), name, country, city, description, Integer.parseInt(difficulty), Double.parseDouble(rating), picture, Integer.parseInt(duration)));
+                        GamesContent.ITEMS.add(new GamesContent.GameItem(Integer.parseInt(id), name, country, city, description, Integer.parseInt(difficulty), Double.parseDouble(rating), Integer.parseInt(ratingCounter),picture, Integer.parseInt(duration)));
                     }
 
                     mAdapter.notifyDataSetChanged();
