@@ -13,8 +13,19 @@
     <string name="permission_rationale">"Contacts permissions are needed for providing email
         completions."
     </string>
-    <string name="facebook_app_id">1371101752938569</string>
-    <string name="fb_login_protocol_scheme">fb1371101752938569</string>
+    <string name="facebook_app_id">1338399866209849</string>
+    <string name="fb_login_protocol_scheme">fb1338399866209849</string>
     <string name="title_activity_maps">Map</string>
+    <string name="title_activity_side_menu">SideMenuActivity</string>
+
+    <string name="navigation_drawer_open">Open navigation drawer</string>
+    <string name="navigation_drawer_close">Close navigation drawer</string>
+
+    <string name="action_settings">Settings</string>
+    <string name="title_activity_create_game">CreateGameActivity</string>
+    <string name="prompt_game_name">Game name</string>
+    <string name="prompt_game_description">Description</string>
+    <string name="prompt_question_text">Question</string>
+    <string name="prompt_answer_text">Answer</string>
     <!--<string name="google_maps_key">AIzaSyAvU96Y8TWwjsGLySiTMlmrDL5uBUQ0KJA</string>-->
 </resources>

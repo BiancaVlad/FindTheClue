@@ -1,0 +1,130 @@
+<ScrollView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    android:id="@+id/create_game_scrollview"
+    tools:context="com.dissertation.findtheclue.CreateGameActivity">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <ImageView
+            android:id="@+id/add_game_picture"
+            android:layout_width="fill_parent"
+            android:layout_height="260dp"
+            android:layout_gravity="top"
+            android:layout_marginTop="0dp"
+            android:layout_marginLeft="0dp"
+            android:layout_marginRight="0dp"
+            android:adjustViewBounds="true"
+            android:layout_weight="3"
+            android:scaleType="centerCrop"/>
+
+        <android.support.v7.widget.AppCompatButton
+            android:id="@+id/add_pic_btn"
+            android:layout_marginTop="-170dp"
+            android:layout_width="80dp"
+            android:layout_height="80dp"
+            android:layout_gravity="center"
+            android:backgroundTintMode="src_atop"
+            android:backgroundTint="@android:color/darker_gray"
+            android:background="@mipmap/ic_add_a_photo_black_24dp"
+            />
+
+        <android.support.design.widget.TextInputLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="105dp"
+            android:layout_marginLeft="5dp">
+
+            <EditText
+                android:id="@+id/crate_game_name"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="@string/prompt_game_name"
+                android:inputType="text"
+                android:maxLines="1"
+                android:singleLine="true" />
+
+        </android.support.design.widget.TextInputLayout>
+
+        <android.support.design.widget.TextInputLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <EditText
+                android:id="@+id/create_game_description"
+                android:layout_width="match_parent"
+                android:layout_height="150dp"
+                android:hint="@string/prompt_game_description"
+                android:maxLines="5"
+                android:textAlignment="textStart"
+                android:layout_gravity="start"
+                android:inputType="textMultiLine"
+                />
+
+        </android.support.design.widget.TextInputLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="300dp"
+            android:orientation="horizontal"
+            android:weightSum="1">
+            <ListView
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="0.80">
+            </ListView>
+            <LinearLayout
+                android:orientation="vertical"
+                android:gravity="center"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="0.20">
+                <android.support.v7.widget.AppCompatButton
+                    android:id="@+id/add_question_btn"
+                    android:layout_width="50dp"
+                    android:layout_height="50dp"
+                    android:backgroundTintMode="src_atop"
+                    android:backgroundTint="@android:color/darker_gray"
+                    android:background="@mipmap/ic_add_black_24dp"/>
+
+                <android.support.v7.widget.AppCompatButton
+                    android:id="@+id/remove_question_btn"
+                    android:layout_width="50dp"
+                    android:layout_height="50dp"
+                    android:backgroundTintMode="src_atop"
+                    android:backgroundTint="@android:color/darker_gray"
+                    android:background="@mipmap/ic_remove_black_24dp"/>
+
+                <android.support.v7.widget.AppCompatButton
+                    android:id="@+id/move_up_question_btn"
+                    android:layout_width="50dp"
+                    android:layout_height="50dp"
+                    android:backgroundTintMode="src_atop"
+                    android:backgroundTint="@android:color/darker_gray"
+                    android:background="@mipmap/ic_keyboard_arrow_up_black_24dp"/>
+
+                <android.support.v7.widget.AppCompatButton
+                    android:id="@+id/move_down_question_btn"
+                    android:layout_width="50dp"
+                    android:layout_height="50dp"
+                    android:backgroundTintMode="src_atop"
+                    android:backgroundTint="@android:color/darker_gray"
+                    android:background="@mipmap/ic_keyboard_arrow_down_black_24dp"/>
+            </LinearLayout>
+        </LinearLayout>
+
+        <Button
+            android:id="@+id/add_game_btn"
+            style="?android:textAppearanceSmall"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="Create game"
+            android:textStyle="bold" />
+    </LinearLayout>
+</ScrollView>
