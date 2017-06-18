@@ -72,9 +72,6 @@ public class QuestionActivity extends AppCompatActivity
         TextView questionView = (TextView) findViewById(R.id.question_text);
         questionView.setText(currentQuestion.getQuestionText());
 
-
-
-
         latitude = currentQuestion.getLatitude();
         longitude = currentQuestion.getLongitude();
 

@@ -15,8 +15,6 @@ import com.dissertation.findtheclue.R;
 
 import java.util.List;
 
-import de.hdodenhof.circleimageview.CircleImageView;
-
 /**
  * Created by Vlad on 17-Jun-17.
  */
