@@ -2,7 +2,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="fill_parent"
     android:layout_height="fill_parent"
-    android:layout_margin="10dip"
+    android:layout_margin="10dp"
     tools:context="com.dissertation.findtheclue.EndGameActivity"
     android:weightSum="1.0"
     android:orientation="vertical">
@@ -10,7 +10,7 @@
     <TextView
         android:layout_width="fill_parent"
         android:layout_height="0dp"
-        android:layout_marginTop="20dp"
+        android:layout_marginTop="50dp"
         android:textAppearance="?android:attr/textAppearanceLarge"
         android:layout_gravity="center_horizontal"
         android:layout_alignParentTop="true"

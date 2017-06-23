@@ -1,6 +1,7 @@
 package com.dissertation.findtheclue;
 
 import android.app.SearchManager;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -12,9 +13,14 @@ import android.net.Uri;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.widget.Toolbar;
 import android.util.Log;
+import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ImageView;
+import android.widget.ScrollView;
 import android.widget.Toast;
 
 import com.google.android.gms.common.GooglePlayServicesNotAvailableException;
@@ -40,7 +46,7 @@ import java.util.Locale;
 
 import utils.GPS;
 
-public class AddQuestionActivity extends AppCompatActivity
+public class AddQuestionActivity extends SideMenuActivity
         implements OnMapReadyCallback {
 
     private double latitude;
@@ -49,16 +55,22 @@ public class AddQuestionActivity extends AppCompatActivity
     Geocoder geocoder;
     private LatLng latLng;
     private Marker marker;
-
+    ScrollView addQScrollview;
+    SupportMapFragment mapFragment;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_add_question);
+        //setContentView(R.layout.activity_add_question);
 
-        Location loc = GPS.getLastLocation(getApplicationContext());
+        LayoutInflater inflater = (LayoutInflater) this
+                .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        View contentView = inflater.inflate(R.layout.activity_add_question, null, false);
+        drawer.addView(contentView, 0);
+
+      /*  Location loc = GPS.getLastLocation(getApplicationContext());
         latitude = loc.getLongitude();
-        longitude = loc.getLatitude();
+        longitude = loc.getLatitude();*/
 
         geocoder = new Geocoder(this, Locale.getDefault());
         setUpMapIfNeeded();
@@ -72,7 +84,7 @@ public class AddQuestionActivity extends AppCompatActivity
             public void onPlaceSelected(Place place) {
                 // TODO: Get info about the selected place.
                 marker = mMap.addMarker(new MarkerOptions().position(place.getLatLng()).title(place.getAddress().toString())
-                        .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_ROSE)));
+                        .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_VIOLET)));
                 mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(marker.getPosition(), 12f));
             }
 
@@ -83,13 +95,42 @@ public class AddQuestionActivity extends AppCompatActivity
             }
         });
 
+        ImageView transparentImageView = (ImageView) findViewById(R.id.transparent_image);
+
+        transparentImageView.setOnTouchListener(new View.OnTouchListener() {
+
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                int action = event.getAction();
+                switch (action) {
+                    case MotionEvent.ACTION_DOWN:
+                        // Disallow ScrollView to intercept touch events.
+                        addQScrollview.requestDisallowInterceptTouchEvent(true);
+                        // Disable touch on transparent view
+                        return false;
+
+                    case MotionEvent.ACTION_UP:
+                        // Allow ScrollView to intercept touch events.
+                        addQScrollview.requestDisallowInterceptTouchEvent(false);
+                        return true;
+
+                    case MotionEvent.ACTION_MOVE:
+                        addQScrollview.requestDisallowInterceptTouchEvent(true);
+                        return false;
+
+                    default:
+                        return true;
+                }
+            }
+        });
+
     }
 
     private void setUpMapIfNeeded() {
         // Do a null check to confirm that we have not already instantiated the map.
         if (mMap == null) {
             // Try to obtain the map from the SupportMapFragment.
-            SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
+            mapFragment = (SupportMapFragment) getSupportFragmentManager()
                     .findFragmentById(R.id.add_question_map);
             mapFragment.getMapAsync(this);
             //mMap = mapFragment.
@@ -146,7 +187,7 @@ public class AddQuestionActivity extends AppCompatActivity
 
                 //place marker where user just clicked
                 marker = mMap.addMarker(new MarkerOptions().position(point).title("Marker")
-                        .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_ROSE)));
+                        .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_VIOLET)));
 
             }
         });
@@ -196,7 +237,7 @@ public class AddQuestionActivity extends AppCompatActivity
         LatLng currentPosition = new LatLng(lastKnownLocation.getLatitude(), lastKnownLocation.getLongitude());
 
         marker = mMap.addMarker(new MarkerOptions().position(currentPosition).title("The selected location")
-                .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_ROSE)));
+                .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_VIOLET)));
         mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(marker.getPosition(), 12f));
         //LatLng markerPos = new LatLng(latitude, longitude);
         //mMap.addMarker(new MarkerOptions().position(markerPos));

@@ -2,6 +2,7 @@ package com.dissertation.findtheclue;
 
 import android.app.Activity;
 import android.content.ComponentName;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -24,11 +25,14 @@ import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.AppCompatButton;
 import android.support.v7.widget.Toolbar;
+import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.ListView;
 import android.widget.ScrollView;
 import android.widget.Toast;
 
@@ -36,7 +40,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
-public class CreateGameActivity extends AppCompatActivity {
+public class CreateGameActivity extends SideMenuActivity {
 
     AppCompatButton addPicture;
     AppCompatButton addQuestionBtn;
@@ -53,11 +57,24 @@ public class CreateGameActivity extends AppCompatActivity {
     String selectedImagePath;
     ScrollView createGameScrollView;
     EditText createGameEditText;
+    ListView listView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_create_game);
+        //setContentView(R.layout.activity_create_game);
+
+        LayoutInflater inflater = (LayoutInflater) this
+                .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        View contentView = inflater.inflate(R.layout.activity_create_game, null, false);
+        drawer.addView(contentView, 0);
+
+        listView = (ListView) findViewById(R.id.question_list_view);
+
+        String [] fiilliste={"Cate animale vezi in imagine?","Care este anul pe care il gasesti pe statuia din fata ta?"};
+        ArrayAdapter<String> adapter;
+        adapter = new ArrayAdapter<String>(this,android.R.layout.simple_list_item_1, fiilliste);
+        listView.setAdapter(adapter);
 
         createGameEditText = (EditText) findViewById(R.id.create_game_description);
 

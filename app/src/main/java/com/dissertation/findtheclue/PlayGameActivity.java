@@ -1,6 +1,7 @@
 package com.dissertation.findtheclue;
 
 import android.app.ProgressDialog;
+import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -9,6 +10,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Base64;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
@@ -23,7 +25,7 @@ import model.GamesContent;
 import model.QuestionContent;
 import utils.ServiceHandler;
 
-public class PlayGameActivity extends AppCompatActivity {
+public class PlayGameActivity extends SideMenuActivity {
 
     private static final String TAG_ID = "gameId";
     private static final String TAG_NAME = "gameName";
@@ -51,7 +53,12 @@ public class PlayGameActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_play_game);
+        //setContentView(R.layout.activity_play_game);
+
+        LayoutInflater inflater = (LayoutInflater) this
+                .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        View contentView = inflater.inflate(R.layout.activity_play_game, null, false);
+        drawer.addView(contentView, 0);
 
         this.setViews();
 

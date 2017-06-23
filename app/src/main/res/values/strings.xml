@@ -1,8 +1,15 @@
 <resources>
-    <string name="app_name">FindTheClue</string>
+    <string name="app_name">Find The Clue</string>
+
+    <string-array name="questions">
+        <item>Cate animale vezi in imagine?</item>
+        <item>Care este anul pe care il gasesti pe statuia din fata ta?</item>
+    </string-array>
 
     <!-- Strings related to login -->
     <string name="prompt_email">Email</string>
+    <string name="prompt_first_name">First Name</string>
+    <string name="prompt_last_name">Last Name</string>
     <string name="prompt_password">Password</string>
     <string name="action_sign_in">Sign in or register</string>
     <string name="action_sign_in_short">Sign in</string>

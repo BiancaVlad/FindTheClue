@@ -4,7 +4,9 @@ import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.annotation.TargetApi;
 import android.content.Intent;
+import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
+import android.provider.Settings;
 import android.support.annotation.NonNull;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
@@ -20,30 +22,60 @@ import android.os.Build;
 import android.os.Bundle;
 import android.provider.ContactsContract;
 import android.text.TextUtils;
+import android.util.Base64;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.inputmethod.EditorInfo;
+import android.webkit.ConsoleMessage;
+import android.webkit.WebView;
+import android.webkit.WebViewClient;
 import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 
+import java.io.Console;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.security.Signature;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
+import com.facebook.AccessToken;
 import com.facebook.CallbackManager;
 import com.facebook.FacebookCallback;
 import com.facebook.FacebookException;
 import com.facebook.FacebookSdk;
+import com.facebook.LoggingBehavior;
+import com.facebook.Profile;
 import com.facebook.login.LoginManager;
 import com.facebook.login.LoginResult;
 import com.facebook.login.widget.LoginButton;
 import com.google.android.gms.appindexing.Action;
 import com.google.android.gms.appindexing.AppIndex;
 import com.google.android.gms.common.api.GoogleApiClient;
+
+import org.apache.http.HttpResponse;
+import org.apache.http.NameValuePair;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.methods.HttpPut;
+import org.apache.http.entity.StringEntity;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import model.ExternalLoginViewModel;
+import utils.ServiceHandler;
 
 import static android.Manifest.permission.READ_CONTACTS;
 
@@ -74,45 +106,66 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
     private EditText mPasswordView;
     private View mProgressView;
     private View mLoginFormView;
-    private Button mybtn;
+    private Button fb_btn;
     private LoginButton loginButton;
     private CallbackManager callbackManager;
+    private AccessToken accessToken;
     /**
      * ATTENTION: This was auto-generated to implement the App Indexing API.
      * See https://g.co/AppIndexing/AndroidStudio for more information.
      */
     private GoogleApiClient client;
+    private static String url = "https://findthecluebe.azurewebsites.net/api/Account/ExternalLogins?returnUrl=%2F&generateState=true";
+    private static final String TAG_NAME = "Name";
+    private static final String TAG_URL = "Url";
+    private static final String TAG_STATE = "State";
+    List<ExternalLoginViewModel> externalLoginViewModels;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
-        // Set up the login form.
-        loginButton = (LoginButton) findViewById(R.id.login_button);
-        loginButton.setReadPermissions("email");
-        // Other app specific specialization
-        // Callback registration
-        callbackManager = CallbackManager.Factory.create();
+        fb_btn = (Button) findViewById(R.id.fb_btn);
+        fb_btn.setVisibility(View.INVISIBLE);
 
-        LoginManager.getInstance().logInWithReadPermissions(this, Arrays.asList("email","public_profile"));
-        LoginManager.getInstance().registerCallback(callbackManager, new FacebookCallback<LoginResult>() {
-            @Override
-            public void onSuccess(LoginResult loginResult) {
-                Intent intent=new Intent(LoginActivity.this,MainActivity.class);
-                startActivity(intent);
-                finish();
+        ServiceHandler sh = new ServiceHandler();
+        String jsonStr = sh.makeServiceCall(url, ServiceHandler.GET);
+        externalLoginViewModels = new ArrayList<>();
+
+        if (jsonStr != null) {
+            try {
+                // Getting JSON Array node
+                JSONArray externalLogins = new JSONArray(jsonStr);
+
+                for (int i = 0; i < externalLogins.length(); i++) {
+                    JSONObject g = externalLogins.getJSONObject(i);
+
+                    String name = g.getString(TAG_NAME);
+                    String url = g.getString(TAG_URL);
+                    String state = g.getString(TAG_STATE);
+
+                    externalLoginViewModels.add(new ExternalLoginViewModel(name, url, state));
+                }
+            } catch (JSONException e) {
+                e.printStackTrace();
             }
+        } else {
+            Log.e("utils.ServiceHandler", "Couldn't get any data from the url");
+        }
 
-            @Override
-            public void onCancel() {
-                // App code
-            }
+        if(externalLoginViewModels.size() > 0)
+        {
+            fb_btn.setVisibility(View.VISIBLE);
+        }
 
+        fb_btn.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onError(FacebookException exception) {
-                // App code
+            public void onClick(View v) {
+
+                onfbClick();
             }
         });
+
         mEmailView = (AutoCompleteTextView) findViewById(R.id.email);
         populateAutoComplete();
 
@@ -141,6 +194,95 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
         // ATTENTION: This was auto-generated to implement the App Indexing API.
         // See https://g.co/AppIndexing/AndroidStudio for more information.
         client = new GoogleApiClient.Builder(this).addApi(AppIndex.API).build();
+    }
+
+    private void onfbClick() {
+
+        WebView webview = new WebView(this);
+
+        setContentView(webview);
+ /*       String myUrl = "https://findthecluebe.azurewebsites.net" + externalLoginViewModels.get(0).getUrl();
+        webview.loadUrl(myUrl);
+
+        webview.setWebViewClient(new WebViewClient()
+        {
+            public void onPageFinished(WebView view, String url)
+            {
+                try {
+                    URL fbUrl = new URL(url);
+                    String domain = fbUrl.getHost();
+
+                    if(!domain.isEmpty() && domain.equalsIgnoreCase("findthecluebe.azurewebsites.net"))
+                    {
+                        String query = fbUrl.getQuery();
+
+                        if(query != null) {
+                            String code = getQueryMap(query).get("code");
+                        }
+                    }
+                } catch (MalformedURLException e) {
+                    e.printStackTrace();
+                }
+            }
+        });*/
+        callbackManager = CallbackManager.Factory.create();
+
+        LoginManager.getInstance().logInWithReadPermissions(this, Arrays.asList("email","public_profile"));
+        LoginManager.getInstance().registerCallback(callbackManager, new FacebookCallback<LoginResult>() {
+            @Override
+            public void onSuccess(LoginResult loginResult) {
+                accessToken = loginResult.getAccessToken();
+                Profile profile = Profile.getCurrentProfile();
+                String myUrl = "http://findthecluebe.azurewebsites.net/api/account/facebooklogin";
+                HttpResponse httpResponse;
+                try {
+                    HttpClient httpclient = new DefaultHttpClient();
+                    HttpPost httpPUT = new
+                            HttpPost(myUrl);
+                    String json = "";
+                    JSONObject jsonObject = new JSONObject();
+
+                    jsonObject.put("Token", accessToken.getToken().toString());
+                    json = jsonObject.toString();
+                    StringEntity se = new StringEntity(json);
+                    httpPUT.setEntity(se);
+                    httpPUT.setHeader("Accept", "application/json");
+                    httpPUT.setHeader("Content-type", "application/json");
+                    httpResponse = httpclient.execute(httpPUT);
+                } catch (Exception e) {
+                    Log.d("InputStream", e.getLocalizedMessage());
+                }
+
+                Bundle parameters = new Bundle();
+                parameters.putString("fields", "first_name,last_name");
+
+                Intent intent=new Intent(LoginActivity.this,GamesListActivity.class);
+                startActivity(intent);
+                finish();
+            }
+
+            @Override
+            public void onCancel() {
+                showProgress(false);
+            }
+
+            @Override
+            public void onError(FacebookException exception) {
+            }
+        });
+    }
+
+    public Map<String, String> getQueryMap(String query)
+    {
+        String[] params = query.split("&");
+        Map<String, String> map = new HashMap<String, String>();
+        for (String param : params)
+        {
+            String name = param.split("=")[0];
+            String value = param.split("=")[1];
+            map.put(name, value);
+        }
+        return map;
     }
 
     @Override

@@ -12,8 +12,10 @@
     tools:context="com.dissertation.findtheclue.AddQuestionActivity">
 
     <ScrollView
+        android:id="@+id/add_question_scrollview"
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="match_parent"
+        android:layout_marginTop="50dp">
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -23,13 +25,13 @@
             <LinearLayout
                 android:id="@+id/linearLayout"
                 android:layout_width="fill_parent"
-                android:layout_height="250dp"
+                android:layout_height="320dp"
                 android:orientation="vertical">
 
                 <fragment
                     android:id="@+id/place_autocomplete_fragment"
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
+                    android:layout_height="50dp"
                     android:name="com.google.android.gms.location.places.ui.PlaceAutocompleteFragment"
                     />
 
@@ -39,8 +41,13 @@
                     android:id="@+id/add_question_map"
                     android:name="com.google.android.gms.maps.SupportMapFragment"
                     android:layout_width="match_parent"
-                    android:layout_height="match_parent"
+                    android:layout_height="270dp"
                     tools:context="com.dissertation.findtheclue.AddQuestionActivity" />
+                <ImageView
+                    android:id="@+id/transparent_image"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:src="@android:color/transparent" />
             </LinearLayout>
 
             <android.support.design.widget.TextInputLayout

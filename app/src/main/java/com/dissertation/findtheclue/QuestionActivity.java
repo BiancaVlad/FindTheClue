@@ -1,8 +1,10 @@
 package com.dissertation.findtheclue;
 
+import android.content.Context;
 import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -19,10 +21,11 @@ import com.google.android.gms.maps.MapView;
 import com.google.android.gms.maps.MapsInitializer;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 
-public class QuestionActivity extends AppCompatActivity
+public class QuestionActivity extends SideMenuActivity
     implements OnMapReadyCallback{
 
     Button submitAnswerBtn;
@@ -31,7 +34,12 @@ public class QuestionActivity extends AppCompatActivity
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_question);
+        //setContentView(R.layout.activity_question);
+        LayoutInflater inflater = (LayoutInflater) this
+                .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        View contentView = inflater.inflate(R.layout.activity_question, null, false);
+        drawer.addView(contentView, 0);
+
         final EditText answerText = (EditText) findViewById(R.id.answer_text);
         this.setViews(savedInstanceState);
 
@@ -86,7 +94,9 @@ public class QuestionActivity extends AppCompatActivity
         mMap = googleMap;
 
         LatLng markerPos = new LatLng(latitude, longitude);
-        mMap.addMarker(new MarkerOptions().position(markerPos));
+        mMap.addMarker(new MarkerOptions().position(markerPos)
+                .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_VIOLET)));
+       // mMap.addMarker(new MarkerOptions().position(markerPos));
         mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(markerPos, 16f));
     }
 

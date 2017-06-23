@@ -11,6 +11,7 @@ import android.support.v7.widget.RecyclerView;
 import android.util.AttributeSet;
 import android.util.Base64;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.View;
 
 import org.json.JSONArray;
@@ -26,7 +27,7 @@ import model.PlayersAdapter;
 import model.PlayersContent;
 import utils.ServiceHandler;
 
-public class TopPlayersActivity extends AppCompatActivity {
+public class TopPlayersActivity extends SideMenuActivity {
 
     // URL to get contacts JSON
     private static String url = "http://findtheclue.azurewebsites.net/api/players";
@@ -50,7 +51,12 @@ public class TopPlayersActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_top_players);
+        //setContentView(R.layout.activity_top_players);
+
+        LayoutInflater inflater = (LayoutInflater) this
+                .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        View contentView = inflater.inflate(R.layout.activity_top_players, null, false);
+        drawer.addView(contentView, 0);
 
         mRecyclerView = (RecyclerView) findViewById(R.id.top_players_recycler_view);
 
