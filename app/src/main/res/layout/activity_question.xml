@@ -4,7 +4,6 @@
     android:layout_height="fill_parent"
     android:layout_marginLeft="10dip"
     android:layout_marginRight="10dip"
-    android:layout_marginTop="50dip"
     tools:context="com.dissertation.findtheclue.QuestionActivity"
     android:weightSum="1.0"
     android:orientation="vertical">
@@ -36,15 +35,36 @@
         android:text="Intrebare:"
         android:layout_weight="0.25"/>
 
-    <EditText
-        android:id="@+id/answer_text"
-        android:layout_width="fill_parent"
+    <LinearLayout
+        android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="0.20" />
+        android:layout_weight="0.20"
+        android:weightSum="1"
+        android:orientation="horizontal">
+
+        <EditText
+            android:id="@+id/answer_text"
+            android:layout_height="match_parent"
+            android:layout_width="0dp"
+            android:layout_weight="0.88"
+            />
+
+        <android.support.v7.widget.AppCompatButton
+            android:id="@+id/check_answer_btn"
+            android:layout_width="0dp"
+            android:layout_weight="0.12"
+            android:layout_height="40dp"
+            android:clickable="false"
+            android:background="@mipmap/ic_close_black_24dp"
+            android:backgroundTintMode="src_atop"
+            android:backgroundTint="@android:color/holo_red_dark"/>
+    </LinearLayout>
+
 
     <android.support.v7.widget.AppCompatButton
         android:id="@+id/test_answer_btn"
         android:text="OK"
+        android:layout_marginTop="20dp"
         android:layout_width="100dp"
         android:layout_height="0dp"
         android:layout_weight="0.1"

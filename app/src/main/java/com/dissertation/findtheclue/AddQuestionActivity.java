@@ -97,6 +97,7 @@ public class AddQuestionActivity extends SideMenuActivity
 
         ImageView transparentImageView = (ImageView) findViewById(R.id.transparent_image);
 
+        addQScrollview= (ScrollView) findViewById(R.id.add_question_scrollview);
         transparentImageView.setOnTouchListener(new View.OnTouchListener() {
 
             @Override

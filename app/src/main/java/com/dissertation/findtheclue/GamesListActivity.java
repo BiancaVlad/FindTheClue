@@ -215,6 +215,11 @@ public class GamesListActivity extends SideMenuActivity {
 
             @Override
             public void onSuccess(int statusCode, Header[] headers, JSONArray games) {
+                if(GamesContent.ITEMS.size() > 0)
+                {
+                    GamesContent.ITEMS.clear();
+                }
+
                     try {
                         for (int i = 0; i < games.length(); i++) {
                             JSONObject g = games.getJSONObject(i);

@@ -5,17 +5,30 @@ import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Color;
 import android.os.AsyncTask;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Base64;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.RatingBar;
+import android.widget.ScrollView;
 import android.widget.TextView;
+
+import com.google.android.gms.maps.CameraUpdateFactory;
+import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.MapFragment;
+import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
+import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.maps.model.PolylineOptions;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -25,7 +38,9 @@ import model.GamesContent;
 import model.QuestionContent;
 import utils.ServiceHandler;
 
-public class PlayGameActivity extends SideMenuActivity {
+public class PlayGameActivity extends SideMenuActivity
+        implements OnMapReadyCallback
+        {
 
     private static final String TAG_ID = "gameId";
     private static final String TAG_NAME = "gameName";
@@ -49,6 +64,8 @@ public class PlayGameActivity extends SideMenuActivity {
     private static String url = "http://findtheclue.azurewebsites.net/api/Questions";
 
     Button playButton;
+    private GoogleMap mMap;
+    ScrollView playScrollView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -61,6 +78,40 @@ public class PlayGameActivity extends SideMenuActivity {
         drawer.addView(contentView, 0);
 
         this.setViews();
+
+        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
+                .findFragmentById(R.id.route_map);
+        mapFragment.getMapAsync(this);
+
+        ImageView transparentImageView = (ImageView) findViewById(R.id.play_transparent_image);
+
+        playScrollView= (ScrollView) findViewById(R.id.play_scroll_view);
+        transparentImageView.setOnTouchListener(new View.OnTouchListener() {
+
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                int action = event.getAction();
+                switch (action) {
+                    case MotionEvent.ACTION_DOWN:
+                        // Disallow ScrollView to intercept touch events.
+                        playScrollView.requestDisallowInterceptTouchEvent(true);
+                        // Disable touch on transparent view
+                        return false;
+
+                    case MotionEvent.ACTION_UP:
+                        // Allow ScrollView to intercept touch events.
+                        playScrollView.requestDisallowInterceptTouchEvent(false);
+                        return true;
+
+                    case MotionEvent.ACTION_MOVE:
+                        playScrollView.requestDisallowInterceptTouchEvent(true);
+                        return false;
+
+                    default:
+                        return true;
+                }
+            }
+        });
 
         playButton = (Button) findViewById(R.id.play_button);
 
@@ -79,6 +130,55 @@ public class PlayGameActivity extends SideMenuActivity {
     }
 
     @Override
+    public void onMapReady(GoogleMap map) {
+        mMap = map;
+
+        /*if(QuestionContent.ITEMS.size() > 0)
+        {
+            double lat = QuestionContent.ITEMS.get(0).getLatitude();
+            double lng = QuestionContent.ITEMS.get(0).getLongitude();
+
+            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(
+                    new LatLng(lat, lng), 14f));
+        }*/
+        if (QuestionContent.ITEMS.size() > 0) {
+            PolylineOptions poly;
+            poly = new PolylineOptions()
+                    .color(R.color.colorPrimary)
+                    .width(5)
+                    .visible(true)
+                    .zIndex(30);
+
+            for (int i = 0; i < QuestionContent.ITEMS.size(); i++) {
+                LatLng position = new LatLng(QuestionContent.ITEMS.get(i).getLatitude(), QuestionContent.ITEMS.get(i).getLongitude());
+                poly.add(position);
+
+                if (i == 0) {
+                    mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(
+                            position, 14f));
+
+                    mMap.addMarker(new MarkerOptions().position(position)
+                            .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_YELLOW)).title("Start point"));
+                }
+
+                else if(i == QuestionContent.ITEMS.size() - 1)
+                {
+                    mMap.addMarker(new MarkerOptions().position(position)
+                            .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_VIOLET)).title("End point"));
+                }
+                else
+                {
+                    mMap.addMarker(new MarkerOptions().position(position)
+                            .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_VIOLET)));
+                }
+            }
+
+            mMap.addPolyline(poly);
+        }
+    }
+
+
+    @Override
     protected void onResume()
     {
         super.onResume();
@@ -90,17 +190,19 @@ public class PlayGameActivity extends SideMenuActivity {
         @Override
         protected void onPreExecute() {
             super.onPreExecute();
+            getQuestions(getIntent().getIntExtra(TAG_ID, 0));
         }
 
         @Override
         protected Void doInBackground(Void... arg0) {
+
             return null;
         }
 
         @Override
         protected void onPostExecute(Void result)
         {
-            getQuestions(getIntent().getIntExtra(TAG_ID, 0));
+            /*getQuestions(getIntent().getIntExtra(TAG_ID, 0));*/
         }
     }
 

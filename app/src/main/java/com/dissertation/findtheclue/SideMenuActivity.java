@@ -106,7 +106,9 @@ public class SideMenuActivity extends AppCompatActivity
         }
         else if(id == R.id.nav_about)
         {
-            //to-do: start about activity
+            Intent intent=new Intent(this, AboutActivity.class);
+            startActivity(intent);
+            finish();
         }
         else if(id == R.id.nav_create_game)
         {

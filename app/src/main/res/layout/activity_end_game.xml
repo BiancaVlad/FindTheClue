@@ -70,7 +70,8 @@
         android:layout_weight="0.05"
         />
 
-    <android.support.v7.widget.AppCompatButton
+    <Button
+        android:id="@+id/return_btn"
         android:text="Return to main menu"
         android:layout_width="200dp"
         android:layout_height="0dp"

@@ -1,5 +1,6 @@
 package com.dissertation.findtheclue;
 
+import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -37,6 +38,16 @@ public class EndGameActivity extends AppCompatActivity {
         //to-do: set the score for the current user
         TextView scoreView = (TextView) findViewById(R.id.score_view);
         scoreView.setText(Double.toString(QuestionContent.score));
+
+        Button returnBtn = (Button) findViewById(R.id.return_btn);
+        returnBtn.setOnClickListener((new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        Intent intent = new Intent(v.getContext(), GamesListActivity.class);
+                        v.getContext().startActivity(intent);
+                        finish();
+                    }
+                }));
 
         ratingBar = (RatingBar) findViewById(R.id.end_game_rating);
         ratingBar.setEnabled(true);
@@ -113,4 +124,12 @@ public class EndGameActivity extends AppCompatActivity {
 
     }
 
+    @Override
+    public void onBackPressed()
+    {
+        Intent intent = new Intent(getApplicationContext(), GamesListActivity.class);
+        startActivity(intent);
+        finish();
+        //super.onBackPressed();  // optional depending on your needs
+    }
 }
