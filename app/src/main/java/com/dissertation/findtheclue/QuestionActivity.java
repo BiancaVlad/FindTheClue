@@ -13,6 +13,7 @@ import android.location.Location;
 import android.location.LocationManager;
 import android.location.LocationListener;
 import android.os.AsyncTask;
+import android.os.Handler;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
@@ -28,6 +29,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import model.GamesContent;
 import model.QuestionContent;
@@ -154,17 +156,33 @@ public class QuestionActivity extends AppCompatActivity
                         public void onClick(DialogInterface dialog, int id) {
                             if(QuestionContent.questionCounter != QuestionContent.ITEMS.size() - 1)
                             {
-                                QuestionContent.questionCounter ++;
-                                Intent intent = new Intent(v.getContext(), QuestionActivity.class);
-                                v.getContext().startActivity(intent);
-                                finish();
+                                Toast.makeText(QuestionActivity.this, "Correct answer: " + correctAnswer, Toast.LENGTH_LONG).show();
+
+                                final Handler handler = new Handler();
+                                handler.postDelayed(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        QuestionContent.questionCounter ++;
+                                        Intent intent = new Intent(v.getContext(), QuestionActivity.class);
+                                        v.getContext().startActivity(intent);
+                                        finish();
+                                    }
+                                }, 3000);
+
                             }
                             else
                             {
-                                Intent intent = new Intent(v.getContext(), EndGameActivity.class);
-                                intent.putExtra("gameId", QuestionContent.ITEMS.get(QuestionContent.questionCounter).getGameId());
-                                v.getContext().startActivity(intent);
-                                finish();
+                                Toast.makeText(QuestionActivity.this, "Correct answer: " + correctAnswer, Toast.LENGTH_LONG).show();
+                                final Handler handler = new Handler();
+                                handler.postDelayed(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        Intent intent = new Intent(v.getContext(), EndGameActivity.class);
+                                        intent.putExtra("gameId", QuestionContent.ITEMS.get(QuestionContent.questionCounter).getGameId());
+                                        v.getContext().startActivity(intent);
+                                        finish();
+                                    }
+                                }, 3000);
                             }
                             dialog.dismiss();
                         }

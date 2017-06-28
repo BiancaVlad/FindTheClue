@@ -99,19 +99,19 @@ public class EndGameActivity extends AppCompatActivity {
                     try {
                         HttpClient httpclient = new DefaultHttpClient();
                         HttpPut httpPUT = new
-                                HttpPut("http://findtheclue.azurewebsites.net/api/Games/" + currentGame.getId_game());
+                                HttpPut("http://findthecluebe.azurewebsites.net/api/Games/" + currentGame.getId_game());
                         String json = "";
                         JSONObject jsonObject = new JSONObject();
-                        jsonObject.put("id_game",Integer.toString(currentGame.getId_game()));
-                        jsonObject.put("name",currentGame.getName());
-                        jsonObject.put("country", currentGame.getCountry());
-                        jsonObject.put("city", currentGame.getCity());
-                        jsonObject.put("difficulty", Integer.toString(currentGame.getDifficulty()));
-                        jsonObject.put("rating", Double.toString(currentGame.getRating()));
-                        jsonObject.put("picture", currentGame.getPicture());
-                        jsonObject.put("duration", Integer.toString(currentGame.getDuration()));
-                        jsonObject.put("description", currentGame.getDescription());
-                        jsonObject.put("rating_counter", Integer.toString(currentGame.getRatingCounter()));
+                        jsonObject.put("Id",Integer.toString(currentGame.getId_game()));
+                        jsonObject.put("Name",currentGame.getName());
+                        jsonObject.put("Country", currentGame.getCountry());
+                        jsonObject.put("City", currentGame.getCity());
+                        jsonObject.put("Difficulty", Integer.toString(currentGame.getDifficulty()));
+                        jsonObject.put("Rating", Double.toString(currentGame.getRating()));
+                        jsonObject.put("PictureUrl", currentGame.getPicture());
+                        jsonObject.put("Duration", Integer.toString(currentGame.getDuration()));
+                        jsonObject.put("Description", currentGame.getDescription());
+                        jsonObject.put("RatingCounter", Integer.toString(currentGame.getRatingCounter()));
                         json = jsonObject.toString();
                         StringEntity se = new StringEntity(json);
                         httpPUT.setEntity(se);

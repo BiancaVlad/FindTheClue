@@ -127,7 +127,7 @@ public class AddQuestionActivity extends SideMenuActivity
                 }
                 marker = mMap.addMarker(new MarkerOptions().position(place.getLatLng()).title(place.getAddress().toString())
                         .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_VIOLET)));
-                mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(marker.getPosition(), 12f));
+                mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(marker.getPosition(), 15f));
             }
 
             @Override
@@ -231,6 +231,7 @@ public class AddQuestionActivity extends SideMenuActivity
                 //place marker where user just clicked
                 marker = mMap.addMarker(new MarkerOptions().position(point).title("Selected location")
                         .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_VIOLET)));
+                mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(marker.getPosition(), 15f));
                 latitude = point.latitude;
                 longitude = point.longitude;
             }
@@ -290,7 +291,7 @@ public class AddQuestionActivity extends SideMenuActivity
         latitude = currentPosition.latitude;
         longitude = currentPosition.longitude;
 
-        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(marker.getPosition(), 12f));
+        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(marker.getPosition(), 15f));
         //LatLng markerPos = new LatLng(latitude, longitude);
         //mMap.addMarker(new MarkerOptions().position(markerPos));
         //mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(markerPos, 16f));
