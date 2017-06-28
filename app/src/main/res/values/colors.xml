@@ -5,4 +5,6 @@
     <color name="colorAccent">@android:color/holo_purple</color>
     <color name="darkGrey">@android:color/darker_gray</color>
     <color name="green">#3bc663</color>
+    <color name="actionbar_background">#f4f442</color>
+    <color name="actionbar_text">#5b5b5b</color>
 </resources>

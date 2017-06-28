@@ -1,16 +1,22 @@
 package model;
 
+import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.net.Uri;
 import android.support.v7.widget.RecyclerView;
 import android.util.Base64;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.webkit.URLUtil;
 import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.dissertation.findtheclue.R;
+import com.squareup.picasso.MemoryPolicy;
+import com.squareup.picasso.NetworkPolicy;
+import com.squareup.picasso.Picasso;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -52,10 +58,33 @@ public class GamesAdapter extends RecyclerView.Adapter<GamesAdapter.MyViewHolder
     @Override
     public void onBindViewHolder(MyViewHolder holder, int position) {
         GamesContent.GameItem game = gameItems.get(position);
+        Context context = holder.gamePicture.getContext();
 
-        byte[] decodedByte = Base64.decode(game.getPicture(), Base64.DEFAULT);
-        Bitmap bmp = BitmapFactory.decodeByteArray(decodedByte, 0, decodedByte.length);
-        holder.gamePicture.setImageBitmap(bmp);
+        if(game.getPicture() != null && !game.getPicture().isEmpty()) {
+            Uri uri = Uri.parse(game.getPicture());
+            if(uri != null && URLUtil.isValidUrl(uri.toString())) {
+                try {
+                    Picasso.with(context).load(uri).networkPolicy(NetworkPolicy.NO_CACHE).memoryPolicy(MemoryPolicy.NO_CACHE, MemoryPolicy.NO_STORE).into(holder.gamePicture);
+                } catch (Exception e) {
+                    Bitmap icon = BitmapFactory.decodeResource(holder.gamePicture.getContext().getResources(),
+                            R.mipmap.investi4);
+                    holder.gamePicture.setImageBitmap(icon);
+                    // this set the default img source if the path provided in .load is null or some error happened on download.
+                }
+            }
+            else
+            {
+                Bitmap icon = BitmapFactory.decodeResource(holder.gamePicture.getContext().getResources(),
+                        R.mipmap.investi4);
+                holder.gamePicture.setImageBitmap(icon);
+            }
+        }
+        else
+        {
+            Bitmap icon = BitmapFactory.decodeResource(holder.gamePicture.getContext().getResources(),
+                    R.mipmap.investi4);
+            holder.gamePicture.setImageBitmap(icon);
+        }
 
         holder.gameName.setText(game.getName());
         holder.gameLocation.setText(game.getCity());

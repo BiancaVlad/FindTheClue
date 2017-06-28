@@ -17,6 +17,8 @@ import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
 
+import utils.TokenSaver;
+
 public class SideMenuActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
     protected DrawerLayout drawer;
@@ -146,7 +148,10 @@ public class SideMenuActivity extends AppCompatActivity
         builder.setTitle("Are you sure you want to sign out?");
         builder.setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialog, int id) {
-                //TODO
+                TokenSaver.setToken(getApplicationContext(), "");
+                Intent intent=new Intent(getApplication(), LoginActivity.class);
+                startActivity(intent);
+                finish();
                 dialog.dismiss();
             }
         });

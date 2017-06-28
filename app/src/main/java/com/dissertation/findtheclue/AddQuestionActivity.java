@@ -14,11 +14,13 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.ScrollView;
 import android.widget.Toast;
@@ -40,10 +42,14 @@ import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
 import java.io.IOException;
+import java.text.Normalizer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
+import model.GamesContent;
+import model.QuestionContent;
+import model.QuestionsAdapter;
 import utils.GPS;
 
 public class AddQuestionActivity extends SideMenuActivity
@@ -68,6 +74,39 @@ public class AddQuestionActivity extends SideMenuActivity
         View contentView = inflater.inflate(R.layout.activity_add_question, null, false);
         drawer.addView(contentView, 0);
 
+        final EditText questionText = (EditText) findViewById(R.id.add_question_text);
+        final EditText answerText = (EditText) findViewById(R.id.add_answer_text);
+
+        Button addQBtn = (Button) findViewById(R.id.add_question_to_game_btn);
+        addQBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (TextUtils.isEmpty(questionText.getText().toString())) {
+                    questionText.setError(getString(R.string.error_field_required));
+                    return;
+                }
+                if (TextUtils.isEmpty(answerText.getText().toString())) {
+                    answerText.setError(getString(R.string.error_field_required));
+                    return;
+                }
+
+                QuestionContent.QuestionItem questionItem = new QuestionContent.QuestionItem();
+                questionItem.setLatitude(latitude);
+                questionItem.setLongitude(longitude);
+
+                String question = questionText.getText().toString().trim();
+                question = Normalizer.normalize(question, Normalizer.Form.NFD).replaceAll("\\p{InCombiningDiacriticalMarks}+", "");
+                questionItem.setQuestionText(question);
+
+                String answer = answerText.getText().toString().trim();
+                answer = Normalizer.normalize(answer, Normalizer.Form.NFD).replaceAll("\\p{InCombiningDiacriticalMarks}+", "");
+                questionItem.setTextAnswer(answer);
+
+                QuestionsAdapter.GameQuestions.add(questionItem);
+                finish();
+            }
+        });
+
       /*  Location loc = GPS.getLastLocation(getApplicationContext());
         latitude = loc.getLongitude();
         longitude = loc.getLatitude();*/
@@ -83,6 +122,9 @@ public class AddQuestionActivity extends SideMenuActivity
             @Override
             public void onPlaceSelected(Place place) {
                 // TODO: Get info about the selected place.
+                if (marker != null) {
+                    marker.remove();
+                }
                 marker = mMap.addMarker(new MarkerOptions().position(place.getLatLng()).title(place.getAddress().toString())
                         .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_VIOLET)));
                 mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(marker.getPosition(), 12f));
@@ -187,9 +229,10 @@ public class AddQuestionActivity extends SideMenuActivity
                 }
 
                 //place marker where user just clicked
-                marker = mMap.addMarker(new MarkerOptions().position(point).title("Marker")
+                marker = mMap.addMarker(new MarkerOptions().position(point).title("Selected location")
                         .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_VIOLET)));
-
+                latitude = point.latitude;
+                longitude = point.longitude;
             }
         });
 
@@ -237,8 +280,16 @@ public class AddQuestionActivity extends SideMenuActivity
         Location lastKnownLocation = mLocationManager.getLastKnownLocation(locationProvider);
         LatLng currentPosition = new LatLng(lastKnownLocation.getLatitude(), lastKnownLocation.getLongitude());
 
+        if (marker != null) {
+            marker.remove();
+        }
+
         marker = mMap.addMarker(new MarkerOptions().position(currentPosition).title("The selected location")
                 .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_VIOLET)));
+
+        latitude = currentPosition.latitude;
+        longitude = currentPosition.longitude;
+
         mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(marker.getPosition(), 12f));
         //LatLng markerPos = new LatLng(latitude, longitude);
         //mMap.addMarker(new MarkerOptions().position(markerPos));

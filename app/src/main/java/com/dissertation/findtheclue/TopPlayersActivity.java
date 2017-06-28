@@ -14,6 +14,8 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 
+import com.loopj.android.http.JsonHttpResponseHandler;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -21,10 +23,12 @@ import org.json.JSONObject;
 import java.util.Collections;
 import java.util.Comparator;
 
+import cz.msebera.android.httpclient.Header;
 import model.GamesAdapter;
 import model.GamesContent;
 import model.PlayersAdapter;
 import model.PlayersContent;
+import utils.RestClient;
 import utils.ServiceHandler;
 
 public class TopPlayersActivity extends SideMenuActivity {
@@ -68,45 +72,69 @@ public class TopPlayersActivity extends SideMenuActivity {
         //mRecyclerView.addItemDecoration(new SimpleDividerItemDecoration(this));
         mRecyclerView.setAdapter(mAdapter);
 
-        ServiceHandler sh = new ServiceHandler();
-        if(PlayersContent.ITEMS.isEmpty()) {
-            // Making a request to url and getting response
-            String jsonStr = sh.makeServiceCall(url, ServiceHandler.GET);
+        try {
+            getTopPlayersList();
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+    }
 
-            if (jsonStr != null) {
-                try {
-                    // Getting JSON Array node
-                    JSONArray players = new JSONArray(jsonStr);
+    private void getTopPlayersList() throws JSONException {
+        {
+            RestClient.get("players", null, new JsonHttpResponseHandler() {
+                @Override
+                public void onStart() {
+                }
+
+                @Override
+                public void onSuccess(int statusCode, Header[] headers, JSONObject response) {
+                    // If the response is JSONObject instead of expected JSONArray
+                }
+
+                @Override
+                public void onSuccess(int statusCode, Header[] headers, JSONArray players) {
 
                     for (int i = 0; i < players.length(); i++) {
-                        JSONObject g = players.getJSONObject(i);
+                        JSONObject g = null;
+                        try {
+                            g = players.getJSONObject(i);
+                            String id = g.getString(TAG_ID);
+                            String first_name = g.getString(TAG_FIRST_NAME);
+                            String last_name = g.getString(TAG_LAST_NAME);
+                            String email = g.getString(TAG_EMAIL);
+                            String phone_number = g.getString(TAG_PHONE_NUMBER);
+                            String password = g.getString(TAG_PASSWORD);
+                            String score = g.getString(TAG_SCORE);
+                            String profile_picture = g.getString(TAG_PROFILE_PICTURE);
 
-                        String id = g.getString(TAG_ID);
-                        String first_name = g.getString(TAG_FIRST_NAME);
-                        String last_name = g.getString(TAG_LAST_NAME);
-                        String email = g.getString(TAG_EMAIL);
-                        String phone_number = g.getString(TAG_PHONE_NUMBER);
-                        String password = g.getString(TAG_PASSWORD);
-                        String score = g.getString(TAG_SCORE);
-                        String profile_picture = g.getString(TAG_PROFILE_PICTURE);
+                            PlayersContent.ITEMS.add(new PlayersContent.PlayerItem(Integer.parseInt(id), first_name, last_name, email, phone_number, password, Double.parseDouble(score), profile_picture));
 
-                        PlayersContent.ITEMS.add(new PlayersContent.PlayerItem(Integer.parseInt(id), first_name, last_name, email, phone_number, password, Double.parseDouble(score), profile_picture));
-                    }
-
-                    Collections.sort(PlayersContent.ITEMS, new Comparator<PlayersContent.PlayerItem>() {
-                        @Override
-                        public int compare(PlayersContent.PlayerItem o1, PlayersContent.PlayerItem o2) {
-                            return (int)(o2.getScore() - o1.getScore()) ;
+                        } catch (JSONException e) {
+                            e.printStackTrace();
                         }
-                    });
 
-                    mAdapter.notifyDataSetChanged();
-                } catch (JSONException e) {
-                    e.printStackTrace();
+                        Collections.sort(PlayersContent.ITEMS, new Comparator<PlayersContent.PlayerItem>() {
+                            @Override
+                            public int compare(PlayersContent.PlayerItem o1, PlayersContent.PlayerItem o2) {
+                                return (int)(o2.getScore() - o1.getScore()) ;
+                            }
+                        });
+                        mAdapter.notifyDataSetChanged();
+                    }
                 }
-            } else {
-                Log.e("utils.ServiceHandler", "Couldn't get any data from the url");
-            }
+
+                @Override
+                public void onFailure(int statusCode, Header[] headers,
+                                      Throwable throwable, JSONArray errorResponse) {
+                    super.onFailure(statusCode, headers, throwable, errorResponse);
+                }
+
+                @Override
+                public void onFailure(int statusCode, Header[] headers,
+                                      Throwable throwable, JSONObject errorResponse) {
+                    super.onFailure(statusCode, headers, throwable, errorResponse);
+                }
+            });
         }
     }
 
@@ -118,5 +146,17 @@ public class TopPlayersActivity extends SideMenuActivity {
         playerItems = PlayersContent.ITEMS.toArray(playerItems);
 
         return result;
+    }
+
+    @Override
+    public void onBackPressed() {
+        if (this.isTaskRoot()) {
+            Intent intent = new Intent(getApplicationContext(), GamesListActivity.class);
+            startActivity(intent);
+            finish();
+        } else {
+            finish();
+            super.onBackPressed();
+        }
     }
 }

@@ -42,7 +42,7 @@
             android:layout_marginLeft="5dp">
 
             <EditText
-                android:id="@+id/crate_game_name"
+                android:id="@+id/create_game_name"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:hint="@string/prompt_game_name"
@@ -71,7 +71,40 @@
 
         <LinearLayout
             android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginTop="20dp"
+            android:gravity="center">
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="No. of hours:"/>
+        <NumberPicker
+            android:id="@+id/hour_nr"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"></NumberPicker>
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="No. of minutes:"/>
+        <NumberPicker
+            android:id="@+id/minutes_nr"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"></NumberPicker>
+        </LinearLayout>
+
+        <Spinner
+            android:id="@+id/spinner_difficulty"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="30dp"
+            android:background="@android:drawable/btn_dropdown"
+            android:spinnerMode="dropdown" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
             android:layout_height="300dp"
+            android:layout_marginTop="30dp"
             android:orientation="horizontal"
             android:weightSum="1">
             <ListView
@@ -127,6 +160,15 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
             android:text="Create game"
+            android:textStyle="bold" />
+
+        <Button
+            android:id="@+id/return_game_btn"
+            style="?android:textAppearanceSmall"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="Return to main menu"
             android:textStyle="bold" />
     </LinearLayout>
 </ScrollView>

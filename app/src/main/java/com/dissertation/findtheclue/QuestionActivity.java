@@ -1,12 +1,19 @@
 package com.dissertation.findtheclue;
 
 import android.app.Activity;
+import android.app.PendingIntent;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.IntentFilter;
+import android.content.pm.PackageManager;
 import android.content.res.Resources;
+import android.location.Location;
+import android.location.LocationManager;
+import android.location.LocationListener;
 import android.os.AsyncTask;
+import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
@@ -14,6 +21,7 @@ import android.os.Bundle;
 import android.support.v7.widget.AppCompatButton;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Button;
@@ -23,6 +31,7 @@ import android.widget.TextView;
 
 import model.GamesContent;
 import model.QuestionContent;
+import utils.ProximityReceiver;
 
 import com.google.android.gms.games.quest.Quest;
 import com.google.android.gms.maps.CameraUpdateFactory;
@@ -38,7 +47,7 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import java.text.Normalizer;
 
 public class QuestionActivity extends AppCompatActivity
-    implements OnMapReadyCallback{
+        implements OnMapReadyCallback, LocationListener {
 
     Button submitAnswerBtn;
     String answer;
@@ -46,14 +55,48 @@ public class QuestionActivity extends AppCompatActivity
     EditText answerText;
     AppCompatButton checkBtn;
 
+    LocationManager lm;
+
+    //Defining Radius
+    float radius = 200;
+
+    private double latitude;
+    private double longitude;
+    private GoogleMap mMap;
+
+    //Intent Action
+    String ACTION_FILTER = "com.example.proximityalert";
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_question);
-/*        LayoutInflater inflater = (LayoutInflater) this
-                .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-        View contentView = inflater.inflate(R.layout.activity_question, null, false);
-        drawer.addView(contentView, 0);*/
+        this.setViews(savedInstanceState);
+
+        registerReceiver(new ProximityReceiver(), new IntentFilter(ACTION_FILTER));
+
+        lm = (LocationManager) getSystemService(LOCATION_SERVICE);
+
+        //for debugging...
+        lm.requestLocationUpdates(LocationManager.GPS_PROVIDER, 1000, 200, this);
+
+        //Setting up My Broadcast Intent
+        Intent i = new Intent(ACTION_FILTER);
+        PendingIntent pi = PendingIntent.getBroadcast(getApplicationContext(), -1, i, 0);
+
+        //setting up proximituMethod
+        if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            // TODO: Consider calling
+            //    ActivityCompat#requestPermissions
+            // here to request the missing permissions, and then overriding
+            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+            //                                          int[] grantResults)
+            // to handle the case where the user grants the permission. See the documentation
+            // for ActivityCompat#requestPermissions for more details.
+            return;
+        }
+
+        lm.addProximityAlert(latitude, longitude, radius, -1, pi);
 
         answerText = (EditText) findViewById(R.id.answer_text);
         answerText.addTextChangedListener(new TextWatcher() {
@@ -72,8 +115,6 @@ public class QuestionActivity extends AppCompatActivity
 
             }
         });
-
-        this.setViews(savedInstanceState);
 
         checkBtn = (AppCompatButton) findViewById(R.id.check_answer_btn);
 
@@ -142,9 +183,29 @@ public class QuestionActivity extends AppCompatActivity
             }
         });
     }
-    private double latitude;
-    private double longitude;
-    private GoogleMap mMap;
+
+    @Override
+//just For debugging to See the distance between my actual position and the aproximit point
+    public void onLocationChanged(Location newLocation) {
+
+        Location old = new Location("OLD");
+        old.setLatitude(latitude);
+        old.setLongitude(longitude);
+
+        double distance = newLocation.distanceTo(old);
+
+        Log.i("MyTag", "Distance: " + distance);
+    }
+
+    @Override
+    public void onProviderDisabled(String arg0) {}
+
+    @Override
+    public void onProviderEnabled(String arg0) {}
+
+    @Override
+    public void onStatusChanged(String arg0, int arg1, Bundle arg2) {}
+
     private void setViews(Bundle savedInstanceState)
     {
         QuestionContent.QuestionItem currentQuestion = QuestionContent.ITEMS.get(QuestionContent.questionCounter);

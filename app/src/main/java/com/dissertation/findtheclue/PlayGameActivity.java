@@ -3,9 +3,11 @@ package com.dissertation.findtheclue;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.ActivityInfo;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -14,6 +16,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
+import android.webkit.URLUtil;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.RatingBar;
@@ -29,6 +32,9 @@ import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.PolylineOptions;
+import com.squareup.picasso.MemoryPolicy;
+import com.squareup.picasso.NetworkPolicy;
+import com.squareup.picasso.Picasso;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -52,16 +58,16 @@ public class PlayGameActivity extends SideMenuActivity
     private static final String TAG_PICTURE = "gamePicture";
     private static final String TAG_DURATION = "gameDuration";
 
-    private static final String TAG_QUESTION_ID = "id_question";
-    private static final String TAG_QUESTION_TEXT = "question_text";
-    private static final String TAG_QUESTION_ANSWER = "text_answer";
-    private static final String TAG_QUESTION_SCORE = "score";
-    private static final String TAG_QUESTION_GAME_ID = "game_id_game";
-    private static final String TAG_QUESTION_LONGITUDE = "longitude";
-    private static final String TAG_QUESTION_LATITUDE = "latitude";
+    private static final String TAG_QUESTION_ID = "Id";
+    private static final String TAG_QUESTION_TEXT = "QuestionText";
+    private static final String TAG_QUESTION_ANSWER = "TextAnswer";
+    private static final String TAG_QUESTION_SCORE = "Score";
+    private static final String TAG_QUESTION_GAME_ID = "GameId";
+    private static final String TAG_QUESTION_LONGITUDE = "Longitude";
+    private static final String TAG_QUESTION_LATITUDE = "Latitude";
 
     // URL to get contacts JSON
-    private static String url = "http://findtheclue.azurewebsites.net/api/Questions";
+    private static String url = "http://findthecluebe.azurewebsites.net/api/Questions/game/";
 
     Button playButton;
     private GoogleMap mMap;
@@ -70,12 +76,13 @@ public class PlayGameActivity extends SideMenuActivity
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        //setContentView(R.layout.activity_play_game);
 
         LayoutInflater inflater = (LayoutInflater) this
                 .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         View contentView = inflater.inflate(R.layout.activity_play_game, null, false);
         drawer.addView(contentView, 0);
+
+        setRequestedOrientation (ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
 
         this.setViews();
 
@@ -122,6 +129,7 @@ public class PlayGameActivity extends SideMenuActivity
                     QuestionContent.questionCounter = 0;
                     Intent intent = new Intent(v.getContext(), QuestionActivity.class);
                     v.getContext().startActivity(intent);
+                    finish();
                 }
             }
         });
@@ -185,12 +193,27 @@ public class PlayGameActivity extends SideMenuActivity
         new GetQuestionsForGame().execute();
     }
 
+    @Override
+    public void onBackPressed() {
+        if (this.isTaskRoot()) {
+            Intent intent = new Intent(getApplicationContext(), GamesListActivity.class);
+            startActivity(intent);
+            finish();
+        } else {
+            finish();
+            super.onBackPressed();
+        }
+    }
+
     private class GetQuestionsForGame extends AsyncTask<Void, Void, Void> {
 
         @Override
         protected void onPreExecute() {
             super.onPreExecute();
-            getQuestions(getIntent().getIntExtra(TAG_ID, 0));
+            if(getIntent().hasExtra(TAG_ID))
+            {
+                getQuestions(getIntent().getIntExtra(TAG_ID, 0));
+            }
         }
 
         @Override
@@ -207,13 +230,42 @@ public class PlayGameActivity extends SideMenuActivity
     }
 
     private void setViews() {
-
         if (getIntent().hasExtra(TAG_PICTURE)) {
-            byte[] decodedByte = getIntent().getByteArrayExtra(TAG_PICTURE);
-            Bitmap bmp = BitmapFactory.decodeByteArray(getIntent().getByteArrayExtra(TAG_PICTURE), 0, decodedByte.length);
             ImageView imgView = (ImageView) findViewById(R.id.game_picture_details);
-            imgView.setImageBitmap(bmp);
+            String picUrl = getIntent().getStringExtra(TAG_PICTURE);
+            if(picUrl!=null && !picUrl.isEmpty()) {
+                Uri uri = Uri.parse(picUrl);
+                if (uri != null && URLUtil.isValidUrl(uri.toString())) {
+                    try {
+                        Picasso.with(imgView.getContext()).load(uri).networkPolicy(NetworkPolicy.NO_CACHE).memoryPolicy(MemoryPolicy.NO_CACHE, MemoryPolicy.NO_STORE).into(imgView);
+                    } catch (Exception ex) {
+                        Bitmap icon = BitmapFactory.decodeResource(imgView.getContext().getResources(),
+                                R.mipmap.investi4);
+                        imgView.setImageBitmap(icon);
+                    }
+                }
+                else
+                {
+                    Bitmap icon = BitmapFactory.decodeResource(imgView.getContext().getResources(),
+                            R.mipmap.investi4);
+                    imgView.setImageBitmap(icon);
+                }
+            }
+            else
+            {
+                Bitmap icon = BitmapFactory.decodeResource(imgView.getContext().getResources(),
+                        R.mipmap.investi4);
+                imgView.setImageBitmap(icon);
+            }
         }
+        else
+        {
+            ImageView imgView = (ImageView) findViewById(R.id.game_picture_details);
+            Bitmap icon = BitmapFactory.decodeResource(imgView.getContext().getResources(),
+                    R.mipmap.investi4);
+            imgView.setImageBitmap(icon);
+        }
+
         if(getIntent().hasExtra(TAG_NAME)) {
             TextView InputName = (TextView) findViewById(R.id.game_name_details);
             InputName.setText(getIntent().getStringExtra(TAG_NAME).toUpperCase());
@@ -274,28 +326,26 @@ public class PlayGameActivity extends SideMenuActivity
     protected void getQuestions(int id)
     {
         ServiceHandler sh = new ServiceHandler();
+        String jsonStr = sh.makeServiceCall(url+id, ServiceHandler.GET);
 
-        String jsonStr = sh.makeServiceCall(url, ServiceHandler.GET);
         if (jsonStr != null) {
             try {
                 // Getting JSON Array node
                 JSONArray questions = new JSONArray(jsonStr);
                 QuestionContent.ITEMS.clear();
+                QuestionContent.score = 0;
 
                 for (int i = 0; i < questions.length(); i++) {
                     JSONObject q = questions.getJSONObject(i);
-
                     String gameId = q.getString(TAG_QUESTION_GAME_ID);
-                    if(Integer.parseInt(gameId) == id) {
-                        String questionId = q.getString(TAG_QUESTION_ID);
-                        String questionText = q.getString(TAG_QUESTION_TEXT);
-                        String questionAnswer = q.getString(TAG_QUESTION_ANSWER);
-                        String score = q.getString(TAG_QUESTION_SCORE);
-                        String longitude = q.getString(TAG_QUESTION_LONGITUDE);
-                        String latitude = q.getString(TAG_QUESTION_LATITUDE);
+                    String questionId = q.getString(TAG_QUESTION_ID);
+                    String questionText = q.getString(TAG_QUESTION_TEXT);
+                    String questionAnswer = q.getString(TAG_QUESTION_ANSWER);
+                    String score = q.getString(TAG_QUESTION_SCORE);
+                    String longitude = q.getString(TAG_QUESTION_LONGITUDE);
+                    String latitude = q.getString(TAG_QUESTION_LATITUDE);
 
-                        QuestionContent.ITEMS.add(new QuestionContent.QuestionItem(Integer.parseInt(questionId), questionAnswer, Double.parseDouble(score), Integer.parseInt(gameId), Double.parseDouble(longitude), Double.parseDouble(latitude), questionText));
-                    }
+                    QuestionContent.ITEMS.add(new QuestionContent.QuestionItem(Integer.parseInt(questionId), questionAnswer, Double.parseDouble(score), Integer.parseInt(gameId), Double.parseDouble(longitude), Double.parseDouble(latitude), questionText));
                 }
             } catch (JSONException e) {
                 e.printStackTrace();

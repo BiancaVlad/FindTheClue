@@ -12,6 +12,11 @@
     <uses-permission android:name="com.google.android.providers.gsf.permission.READ_GSERVICES" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.VIBRATE" />
+    <uses-permission android:name="android.permission.ACCESS_NOTIFICATION_POLICY" />
+    <uses-permission android:name="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE" />
+    <uses-permission android:name="android.permission.RECEIVE_WAP_PUSH" />
+
 
     <permission
         android:name="com.example.barcodelibrary.permission.MAPS_RECEIVE"
@@ -35,7 +40,7 @@
         android:icon="@mipmap/investi4"
         android:label="@string/app_name"
         android:supportsRtl="true"
-        android:theme="@style/AppTheme">
+        android:theme="@style/CustomActionBarTheme">
         <uses-library android:name="com.google.android.maps" />
 
         <meta-data
@@ -51,14 +56,11 @@
         <activity
             android:name=".LoginActivity"
             android:label="@string/app_name">
-
-            <!--
                 <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
-            -->
         </activity>
         <activity
             android:name="com.facebook.FacebookActivity"
@@ -85,41 +87,41 @@
         <activity android:name=".SignUpActivity" />
         <activity
             android:name=".QuestionActivity"
-            android:theme="@style/AppTheme.NoActionBar" />
+            android:theme="@style/CustomActionBarTheme.NoActionBar" />
         <activity
             android:name=".GamesListActivity"
-            android:theme="@style/AppTheme.NoActionBar">
-            <intent-filter>
+            android:theme="@style/CustomActionBarTheme.NoActionBar">
+            <!--<intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
+            </intent-filter>-->
         </activity>
         <activity
             android:name=".PlayGameActivity"
             android:launchMode="singleInstance"
-            android:theme="@style/AppTheme.NoActionBar" />
+            android:theme="@style/CustomActionBarTheme.NoActionBar" />
         <activity
             android:name=".EndGameActivity"
-            android:theme="@style/AppTheme.NoActionBar" />
+            android:theme="@style/CustomActionBarTheme.NoActionBar" />
         <activity
             android:name=".MapsActivity"
             android:label="@string/title_activity_maps"
-            android:theme="@style/AppTheme.NoActionBar" />
+            android:theme="@style/CustomActionBarTheme.NoActionBar" />
         <activity
             android:name=".SideMenuActivity"
             android:label="@string/title_activity_side_menu"
-            android:theme="@style/AppTheme.NoActionBar" />
+            android:theme="@style/CustomActionBarTheme.NoActionBar" />
         <activity
             android:name=".TopPlayersActivity"
-            android:theme="@style/AppTheme.NoActionBar" />
+            android:theme="@style/CustomActionBarTheme.NoActionBar" />
         <activity
             android:name=".CreateGameActivity"
             android:label="@string/title_activity_create_game"
-            android:theme="@style/AppTheme.NoActionBar" />
+            android:theme="@style/CustomActionBarTheme.NoActionBar" />
         <activity
             android:name=".AddQuestionActivity"
-            android:theme="@style/AppTheme.NoActionBar">
+            android:theme="@style/CustomActionBarTheme.NoActionBar">
             <meta-data
                 android:name="com.google.android.geo.api_key"
                 android:value="@string/google_maps_key" />

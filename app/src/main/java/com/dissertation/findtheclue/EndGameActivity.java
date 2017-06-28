@@ -16,11 +16,20 @@ import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpPut;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.DefaultHttpClient;
+import org.json.JSONException;
 import org.json.JSONObject;
+
+import java.io.IOException;
 
 import model.GamesAdapter;
 import model.GamesContent;
 import model.QuestionContent;
+import okhttp3.MediaType;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.RequestBody;
+import okhttp3.Response;
+import utils.TokenSaver;
 
 public class EndGameActivity extends AppCompatActivity {
 
@@ -38,6 +47,9 @@ public class EndGameActivity extends AppCompatActivity {
         //to-do: set the score for the current user
         TextView scoreView = (TextView) findViewById(R.id.score_view);
         scoreView.setText(Double.toString(QuestionContent.score));
+
+        updateScore(QuestionContent.score);
+
 
         Button returnBtn = (Button) findViewById(R.id.return_btn);
         returnBtn.setOnClickListener((new View.OnClickListener() {
@@ -122,6 +134,43 @@ public class EndGameActivity extends AppCompatActivity {
             }
         });
 
+    }
+
+    private void updateScore(double score) {
+        String myUrl = "http://findthecluebe.azurewebsites.net/api/account/edit";
+        MediaType jsonMedia
+                = MediaType.parse("application/json; charset=utf-8");
+        OkHttpClient client = new OkHttpClient();
+        JSONObject jsonObject = new JSONObject();
+
+        String accessToken = TokenSaver.getToken(getApplicationContext());
+
+        try {
+            jsonObject.put("Points", score);
+            RequestBody body = RequestBody.create(jsonMedia, String.valueOf(jsonObject));
+
+            Request request = new Request.Builder()
+                    .url(myUrl)
+                    .post(body)
+                    .addHeader("content-type", "application/json")
+                    .addHeader("accept", "application/json")
+                    .addHeader("authorization", "bearer " + accessToken)
+                    .build();
+
+            Response response = client.newCall(request).execute();
+
+            boolean ok = false;
+            if (response.isSuccessful())
+            {
+                ok = true;
+                Log.d("InputStream",String.valueOf(ok));
+            }
+
+        } catch (JSONException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     @Override

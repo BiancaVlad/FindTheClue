@@ -3,11 +3,14 @@ package com.dissertation.findtheclue;
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.annotation.TargetApi;
+import android.app.ActionBar;
 import android.content.Intent;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
+import android.graphics.Color;
 import android.provider.Settings;
 import android.support.annotation.NonNull;
+import android.support.design.widget.AppBarLayout;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.app.LoaderManager.LoaderCallbacks;
@@ -21,9 +24,11 @@ import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.provider.ContactsContract;
+import android.support.v7.view.SupportActionModeWrapper;
 import android.text.TextUtils;
 import android.util.Base64;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -35,11 +40,22 @@ import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ProgressBar;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
+import java.io.BufferedReader;
 import java.io.Console;
+import java.io.DataOutputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.UnsupportedEncodingException;
+import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
+import java.net.URI;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.Signature;
@@ -62,20 +78,36 @@ import com.facebook.login.widget.LoginButton;
 import com.google.android.gms.appindexing.Action;
 import com.google.android.gms.appindexing.AppIndex;
 import com.google.android.gms.common.api.GoogleApiClient;
+import com.loopj.android.http.JsonHttpResponseHandler;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpPut;
+import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.params.HttpParams;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import cz.msebera.android.httpclient.Header;
+import cz.msebera.android.httpclient.HttpEntity;
+import cz.msebera.android.httpclient.client.methods.HttpGet;
+import cz.msebera.android.httpclient.entity.ByteArrayEntity;
+import cz.msebera.android.httpclient.util.EntityUtils;
 import model.ExternalLoginViewModel;
+import model.GamesContent;
+import okhttp3.MediaType;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.RequestBody;
+import okhttp3.Response;
+import utils.RestClient;
 import utils.ServiceHandler;
+import utils.TokenSaver;
 
 import static android.Manifest.permission.READ_CONTACTS;
 
@@ -121,16 +153,43 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
     private static final String TAG_STATE = "State";
     List<ExternalLoginViewModel> externalLoginViewModels;
 
+    String currentToken;
+    boolean ok = false;
+
+    android.widget.RelativeLayout.LayoutParams layoutparams;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        setContentView(R.layout.activity_login);
+        mLoginFormView = findViewById(R.id.login_form);
+        mProgressView = findViewById(R.id.login_progress);
+        showProgress(true);
+        currentToken = TokenSaver.getToken(getApplicationContext());
+        if(currentToken != null && !currentToken.isEmpty())
+        {
+            new CheckTokenTask().execute();
+            //boolean ok = checkIfTokenOk();
+
+            /*if (ok) {
+                Intent intent = new Intent(LoginActivity.this, GamesListActivity.class);
+                startActivity(intent);
+                finish();
+            }*/
+        }
+
         setContentView(R.layout.activity_login);
         fb_btn = (Button) findViewById(R.id.fb_btn);
         fb_btn.setVisibility(View.INVISIBLE);
 
+        //setActionBarTextColor("Find the Clue");
+
         ServiceHandler sh = new ServiceHandler();
         String jsonStr = sh.makeServiceCall(url, ServiceHandler.GET);
         externalLoginViewModels = new ArrayList<>();
+
+        final TextView email = (TextView) findViewById(R.id.email);
+        final EditText password = (EditText) findViewById(R.id.password);
 
         if (jsonStr != null) {
             try {
@@ -185,15 +244,141 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
         mEmailSignInButton.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View view) {
-                attemptLogin();
+                String usernameStr = email.getText().toString();
+                if (TextUtils.isEmpty(usernameStr)) {
+                    email.setError(getString(R.string.error_field_required));
+                    return;
+                }
+
+                String passStr = password.getText().toString();
+
+                if (TextUtils.isEmpty(passStr)) {
+                    password.setError(getString(R.string.error_field_required));
+                    return;
+                }
+
+                String urlParameters  = "grant_type=password&username="+ usernameStr + "&password="+passStr;
+                OkHttpClient client = new OkHttpClient();
+
+                MediaType mediaType = MediaType.parse("application/x-www-form-urlencoded");
+                RequestBody body = RequestBody.create(mediaType, urlParameters);
+                Request request = new Request.Builder()
+                        .url("http://findthecluebe.azurewebsites.net/Token")
+                        .post(body)
+                        .addHeader("content-type", "application/x-www-form-urlencoded")
+                        .addHeader("accept", "application/json")
+                        .build();
+
+                try {
+                    Response response = client.newCall(request).execute();
+                    if (response.isSuccessful())
+                    {
+                        String responseData = response.body().string();
+
+                        try {
+                            JSONObject jsonObject = new JSONObject(responseData);
+                            String token = jsonObject.getString("access_token");
+                            TokenSaver.setToken(getApplicationContext(), token);
+
+                        } catch (JSONException e) {
+                        }
+
+                        String token = TokenSaver.getToken(getApplicationContext());
+                        if(token != null && !token.isEmpty())
+                        {
+                            Intent intent = new Intent(LoginActivity.this, GamesListActivity.class);
+                            startActivity(intent);
+                            finish();
+                        }
+                        else
+                        {
+                            Toast.makeText(getApplicationContext(), "Login unsuccessful.", Toast.LENGTH_LONG).show();
+                        }
+                    }
+                    else
+                    {
+                        Intent intent = new Intent(view.getContext(), SignUpActivity.class);
+                        intent.putExtra("username", usernameStr);
+                        intent.putExtra("password", passStr);
+                        view.getContext().startActivity(intent);
+                        finish();
+                    }
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+
+
+                /*try {
+                    StringEntity entity = new StringEntity(urlParameters);
+                    httpPUT.setEntity(entity);
+                    httpPUT.setHeader("Accept", "application/json");
+                    httpPUT.setHeader("Content-type", "x-www-form-urlencoded");
+                    httpResponse = httpclient.execute(httpPUT);
+
+                    String authTok = httpResponse.toString();
+
+                    //callToSaveToken(httpResponse);
+                    Log.d("InputStream", authTok);
+                } catch (UnsupportedEncodingException e1) {
+                    e1.printStackTrace();
+                } catch (Exception e) {
+                    Log.d("InputStream", e.getLocalizedMessage());
+                }*/
+                   /*Intent intent = new Intent(view.getContext(), SignUpActivity.class);
+                view.getContext().startActivity(intent);*/
+                //attemptLogin();
             }
         });
 
-        mLoginFormView = findViewById(R.id.login_form);
-        mProgressView = findViewById(R.id.login_progress);
+
         // ATTENTION: This was auto-generated to implement the App Indexing API.
         // See https://g.co/AppIndexing/AndroidStudio for more information.
         client = new GoogleApiClient.Builder(this).addApi(AppIndex.API).build();
+    }
+
+    private boolean checkIfTokenOk() {
+
+        String myUrl = "http://findthecluebe.azurewebsites.net/api/account/userinfo";
+
+        OkHttpClient client = new OkHttpClient();
+
+        try {
+            Request request = new Request.Builder()
+                    .url(myUrl)
+                    .get()
+                    .addHeader("accept", "application/json")
+                    .addHeader("authorization", "bearer " + currentToken)
+                    .build();
+            Response response = client.newCall(request).execute();
+
+            boolean ok = false;
+            if (response.isSuccessful())
+            {
+                ok = true;
+                Log.d("InputStream",String.valueOf(ok));
+                return true;
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+
+        }
+
+        return false;
+    }
+
+    private void setActionBarTextColor(String title)
+    {
+        android.support.v7.app.ActionBar actionbar = getSupportActionBar();
+        TextView textview = new TextView(LoginActivity.this);
+        layoutparams = new RelativeLayout.LayoutParams(AppBarLayout.LayoutParams.MATCH_PARENT, AppBarLayout.LayoutParams.WRAP_CONTENT);
+        textview.setLayoutParams(layoutparams);
+        textview.setText(title);
+        textview.setTextColor(Color.parseColor("#fc6902"));
+        //textview.setTextColor(getResources().getColor(R.color.colorAccent));
+        if (actionbar != null) {
+            actionbar.setDisplayOptions(ActionBar.DISPLAY_SHOW_TITLE);
+        }
+        actionbar.setCustomView(textview);
     }
 
     private void onfbClick() {
@@ -234,7 +419,43 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
                 accessToken = loginResult.getAccessToken();
                 Profile profile = Profile.getCurrentProfile();
                 String myUrl = "http://findthecluebe.azurewebsites.net/api/account/facebooklogin";
-                HttpResponse httpResponse;
+                MediaType jsonMedia
+                        = MediaType.parse("application/json; charset=utf-8");
+                OkHttpClient client = new OkHttpClient();
+                JSONObject jsonObject = new JSONObject();
+
+                try {
+                    jsonObject.put("Token", accessToken.getToken().toString());
+                    RequestBody body = RequestBody.create(jsonMedia, String.valueOf(jsonObject));
+
+                        Request request = new Request.Builder()
+                                .url(myUrl)
+                                .post(body)
+                                .addHeader("content-type", "application/json")
+                                .addHeader("accept", "application/json")
+                                .build();
+
+                        Response response = client.newCall(request).execute();
+
+                    if (response.isSuccessful())
+                    {
+                        String responseData = response.body().string();
+
+                        try {
+                            JSONObject jsonResponse = new JSONObject(responseData);
+                            String token = jsonResponse.getString("access_token");
+                            TokenSaver.setToken(getApplicationContext(), token);
+                        } catch (JSONException e) {
+                        }
+                    }
+
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+
+                /*HttpResponse httpResponse;
                 try {
                     HttpClient httpclient = new DefaultHttpClient();
                     HttpPost httpPUT = new
@@ -249,16 +470,35 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
                     httpPUT.setHeader("Accept", "application/json");
                     httpPUT.setHeader("Content-type", "application/json");
                     httpResponse = httpclient.execute(httpPUT);
+                    String authToken = httpResponse.getEntity().toString();
+
+                    try {
+                        JSONObject jsonObjfb = new JSONObject(authToken);
+                        String token = jsonObjfb.getString("access_token");
+                        String checktoken = token;
+
+                    } catch (JSONException e) {
+                    }
+                    //callToSaveToken(httpResponse);
+                    Log.d("authToken", authToken);
                 } catch (Exception e) {
                     Log.d("InputStream", e.getLocalizedMessage());
-                }
+                }*/
 
                 Bundle parameters = new Bundle();
                 parameters.putString("fields", "first_name,last_name");
 
-                Intent intent=new Intent(LoginActivity.this,GamesListActivity.class);
-                startActivity(intent);
-                finish();
+                String token = TokenSaver.getToken(getApplicationContext());
+                if(token != null && !token.isEmpty())
+                {
+                    Intent intent = new Intent(LoginActivity.this, GamesListActivity.class);
+                    startActivity(intent);
+                    finish();
+                }
+                else
+                {
+                    Toast.makeText(getApplicationContext(), "Login with facebook unsuccessful!", Toast.LENGTH_LONG).show();
+                }
             }
 
             @Override
@@ -270,6 +510,77 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
             public void onError(FacebookException exception) {
             }
         });
+    }
+
+    public class CheckTokenTask extends AsyncTask<Void, Void, Boolean> {
+
+        @Override
+        protected Boolean doInBackground(Void... params) {
+            return checkIfTokenOk();
+        }
+
+        @Override
+        protected void onPostExecute(final Boolean success) {
+            if(success) {
+
+                Intent intent = new Intent(LoginActivity.this, GamesListActivity.class);
+                startActivity(intent);
+                showProgress(false);
+                finish();
+            }
+        }
+
+        @Override
+        protected void onCancelled() {
+        }
+    }
+
+    public void callToSaveToken(HttpResponse httpResponse)
+    {
+        if(httpResponse.getStatusLine().getStatusCode()==200)
+        {
+            RestClient.get("token", null, new JsonHttpResponseHandler() {
+                        @Override
+                        public void onStart() {
+                        }
+
+                        @Override
+                        public void onSuccess(int statusCode, Header[] headers, JSONObject response) {
+
+                            // If the response is JSONObject instead of expected JSONArray
+                        }
+                @Override
+                public void onFailure(int statusCode, Header[] headers,
+                                      Throwable throwable, JSONObject errorResponse) {
+                    super.onFailure(statusCode, headers, throwable, errorResponse);
+                }
+            });
+
+        }
+            /*String getToken = "http://findthecluebe.azurewebsites.net/Token";
+
+            HttpGet request = new HttpGet();
+            HttpClient httpclient = new DefaultHttpClient();
+            try {
+            URI website = new URI(getToken);
+            request.setURI(website);
+            HttpResponse response = httpclient.execute((HttpUriRequest) request);
+            if(response.getStatusLine().getStatusCode()==200){
+                String server_response = null;
+                server_response = EntityUtils.toString((HttpEntity) response.getEntity());
+
+                TokenSaver.setToken(getApplicationContext(), server_response);
+
+                Log.i("Server response", server_response );
+            } else {
+                Log.i("Server response", "Failed to get server response" );
+            }
+            } catch (IOException e) {
+                e.printStackTrace();
+            } catch (Exception ex) {
+            ex.printStackTrace();
+            }
+        }*/
     }
 
     public Map<String, String> getQueryMap(String query)

@@ -57,7 +57,7 @@
                 <EditText
                     android:id="@+id/add_question_text"
                     android:layout_width="match_parent"
-                    android:layout_height="150dp"
+                    android:layout_height="match_parent"
                     android:layout_gravity="start"
                     android:hint="@string/prompt_question_text"
                     android:inputType="textMultiLine"
@@ -72,7 +72,7 @@
                 <EditText
                     android:id="@+id/add_answer_text"
                     android:layout_width="match_parent"
-                    android:layout_height="150dp"
+                    android:layout_height="match_parent"
                     android:layout_gravity="start"
                     android:hint="@string/prompt_answer_text"
                     android:inputType="textMultiLine"
@@ -95,7 +95,7 @@
                 android:gravity="bottom">
 
                 <Button
-                    android:id="@+id/add_game_btn"
+                    android:id="@+id/add_question_to_game_btn"
                     style="?android:textAppearanceSmall"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"

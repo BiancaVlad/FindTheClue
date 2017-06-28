@@ -99,5 +99,10 @@ public class QuestionContent {
         public void setQuestionText(String questionText) {
             this.questionText = questionText;
         }
+
+        @Override
+        public String toString() {
+            return questionText;
+        }
     }
 }

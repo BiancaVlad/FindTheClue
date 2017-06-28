@@ -11,7 +11,10 @@ import android.content.res.ColorStateList;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Color;
 import android.graphics.Matrix;
+import android.location.Address;
+import android.location.Geocoder;
 import android.media.ExifInterface;
 import android.net.Uri;
 import android.os.Bundle;
@@ -25,22 +28,52 @@ import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.AppCompatButton;
 import android.support.v7.widget.Toolbar;
+import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.ListView;
+import android.widget.NumberPicker;
 import android.widget.ScrollView;
+import android.widget.Spinner;
 import android.widget.Toast;
 
+import utils.BlobGettingStartedTask;
+
+import com.loopj.android.http.JsonHttpResponseHandler;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.io.File;
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.text.Normalizer;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
+import java.util.UUID;
 
-public class CreateGameActivity extends SideMenuActivity {
+import cz.msebera.android.httpclient.Header;
+import cz.msebera.android.httpclient.entity.ByteArrayEntity;
+import cz.msebera.android.httpclient.entity.StringEntity;
+import cz.msebera.android.httpclient.message.BasicHeader;
+import cz.msebera.android.httpclient.protocol.HTTP;
+import model.GamesAdapter;
+import model.GamesContent;
+import model.QuestionContent;
+import model.QuestionsAdapter;
+import utils.OnTaskCompleted;
+import utils.RestClient;
+
+public class CreateGameActivity extends SideMenuActivity
+implements OnTaskCompleted{
 
     AppCompatButton addPicture;
     AppCompatButton addQuestionBtn;
@@ -53,11 +86,43 @@ public class CreateGameActivity extends SideMenuActivity {
     protected static final int GALLERY_PICTURE = 1;
     private Intent pictureActionIntent = null;
     Bitmap bitmap;
+    int selectedPosition;
 
     String selectedImagePath;
     ScrollView createGameScrollView;
     EditText createGameEditText;
     ListView listView;
+    ArrayAdapter<QuestionContent.QuestionItem> adapter;
+    View previousSelectedItem;
+    EditText gameName;
+    EditText gameDescription;
+    Spinner spinnerDifficulty;
+    NumberPicker hourPicker;
+    NumberPicker minutesPicker;
+
+    private static String url = "http://findthecluebe.azurewebsites.net/api/games";
+
+    // JSON Node names
+    private static final String TAG_ID = "Id";
+    private static final String TAG_NAME = "Name";
+    private static final String TAG_COUNTRY = "Country";
+    private static final String TAG_DESCRIPTION = "Description";
+    private static final String TAG_CITY = "City";
+    private static final String TAG_DIFFICULTY = "Difficulty";
+    private static final String TAG_RATING = "Rating";
+    private static final String TAG_RATING_COUNTER = "RatingCounter";
+    private static final String TAG_PICTURE = "PictureUrl";
+    private static final String TAG_DURATION = "Duration";
+
+    private static final String TAG_QUESTION_ID = "Id";
+    private static final String TAG_QUESTION_TEXT = "QuestionText";
+    private static final String TAG_QUESTION_ANSWER = "Answer";
+    private static final String TAG_QUESTION_TEXT_ANSWER = "TextAnswer";
+    private static final String TAG_QUESTION_ANSWER_TYPE = "AnswerType";
+    private static final String TAG_QUESTION_SCORE = "Score";
+    private static final String TAG_QUESTION_GAME_ID = "GameId";
+    private static final String TAG_QUESTION_LONGITUDE = "Longitude";
+    private static final String TAG_QUESTION_LATITUDE = "Latitude";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -69,11 +134,95 @@ public class CreateGameActivity extends SideMenuActivity {
         View contentView = inflater.inflate(R.layout.activity_create_game, null, false);
         drawer.addView(contentView, 0);
 
-        listView = (ListView) findViewById(R.id.question_list_view);
+        Button returnBtn = (Button) findViewById(R.id.return_game_btn);
+        returnBtn.setOnClickListener((new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if(!createdQuestions) {
+                    createAndShowAlertDialog();
+                }
+                else
+                {
+                    QuestionsAdapter.GameQuestions.clear();
+                    qCounter = 0;
+                    Intent intent = new Intent(getApplicationContext(), GamesListActivity.class);
+                    getApplicationContext().startActivity(intent);
+                    finish();
+                }
+            }
+        }));
 
-        String [] fiilliste={"Cate animale vezi in imagine?","Care este anul pe care il gasesti pe statuia din fata ta?"};
-        ArrayAdapter<String> adapter;
-        adapter = new ArrayAdapter<String>(this,android.R.layout.simple_list_item_1, fiilliste);
+        hourPicker = (NumberPicker) findViewById(R.id.hour_nr);
+        hourPicker.setMinValue(0);
+        hourPicker.setMaxValue(10);
+
+        minutesPicker = (NumberPicker) findViewById(R.id.minutes_nr);
+        minutesPicker.setMinValue(0);
+        minutesPicker.setMaxValue(59);
+
+        spinnerDifficulty = (Spinner) findViewById(R.id.spinner_difficulty);
+        String[] items = new String[]{"Begginer", "Amateur", "Intermediate", "Advanced", "Expert"};
+        ArrayAdapter<String> spinnerAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_dropdown_item, items);
+        spinnerDifficulty.setAdapter(spinnerAdapter);
+
+        listView = (ListView) findViewById(R.id.question_list_view);
+        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long arg3) {
+                view.setSelected(true);
+                if(previousSelectedItem != null)
+                {
+                    previousSelectedItem.setBackgroundColor(Color.TRANSPARENT);
+                }
+
+                previousSelectedItem = view;
+                selectedPosition = position;
+                view.setBackgroundColor(getResources().getColor(R.color.colorAccent));
+            }
+        });
+
+        gameName = (EditText) findViewById(R.id.create_game_name);
+        gameDescription = (EditText) findViewById(R.id.create_game_description);
+
+        final Button addGame = (Button) findViewById(R.id.add_game_btn);
+        addGame.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (TextUtils.isEmpty(gameName.getText().toString())) {
+                    gameName.setError(getString(R.string.error_field_required));
+                    return;
+                }
+                if (TextUtils.isEmpty(gameDescription.getText().toString())) {
+                    gameDescription.setError(getString(R.string.error_field_required));
+                    return;
+                }
+                if (TextUtils.isEmpty(gameDescription.getText().toString())) {
+                    gameDescription.setError(getString(R.string.error_field_required));
+                    return;
+                }
+
+                if(QuestionsAdapter.GameQuestions == null || QuestionsAdapter.GameQuestions.size() < 1)
+                {
+                    Toast.makeText(CreateGameActivity.this, "You have to add at least one question to this game.", Toast.LENGTH_LONG).show();
+                    return;
+                }
+
+                addGame.setEnabled(false);
+
+                try {
+                    addGameListCall();
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                } catch (UnsupportedEncodingException e) {
+                    e.printStackTrace();
+                }
+                //add game and then get the last added game id;
+
+                //finish();
+            }
+        });
+
+        adapter = new ArrayAdapter<QuestionContent.QuestionItem>(this,android.R.layout.simple_selectable_list_item, QuestionsAdapter.GameQuestions);
         listView.setAdapter(adapter);
 
         createGameEditText = (EditText) findViewById(R.id.create_game_description);
@@ -225,6 +374,53 @@ public class CreateGameActivity extends SideMenuActivity {
         });
     }
 
+    @Override
+    protected void onResume()
+    {
+        super.onResume();
+        adapter.notifyDataSetChanged();
+    }
+
+    @Override
+    public void onBackPressed()
+    {
+        if(!createdQuestions) {
+            createAndShowAlertDialog();
+        }
+        else
+        {
+            QuestionsAdapter.GameQuestions.clear();
+            qCounter = 0;
+            Intent intent = new Intent(getApplicationContext(), GamesListActivity.class);
+            getApplicationContext().startActivity(intent);
+            finish();
+        }
+        //super.onBackPressed();  // optional depending on your needs
+    }
+
+    private void createAndShowAlertDialog() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Are you sure you want to leave the game creation?");
+        builder.setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int id) {
+                QuestionsAdapter.GameQuestions.clear();
+                qCounter = 0;
+                Intent intent = new Intent(getApplicationContext(), GamesListActivity.class);
+                startActivity(intent);
+                finish();
+                dialog.dismiss();
+            }
+        });
+        builder.setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int id) {
+                //TODO
+                dialog.dismiss();
+            }
+        });
+        AlertDialog dialog = builder.create();
+        dialog.show();
+    }
+
     private void startDialog() {
         AlertDialog.Builder myAlertDialog = new AlertDialog.Builder(this);
         myAlertDialog.setTitle("Upload Pictures Option");
@@ -326,9 +522,8 @@ public class CreateGameActivity extends SideMenuActivity {
                 bitmap = Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(),
                         bitmap.getHeight(), matrix, true);
 
-
-
                 img_logo.setImageBitmap(bitmap);
+
                 //storeImageTosdCard(bitmap);
             } catch (Exception e) {
                 // TODO Auto-generated catch block
@@ -354,10 +549,8 @@ public class CreateGameActivity extends SideMenuActivity {
                 bitmap = BitmapFactory.decodeFile(selectedImagePath); // load
                 // preview image
                 //bitmap = Bitmap.createScaledBitmap(bitmap, 400, 400, false);
-
-
-
                 img_logo.setImageBitmap(bitmap);
+
 
             } else {
                 Toast.makeText(getApplicationContext(), "Cancelled",
@@ -365,5 +558,187 @@ public class CreateGameActivity extends SideMenuActivity {
             }
         }
 
+    }
+
+    public void addGameListCall() throws JSONException, UnsupportedEncodingException {
+        JSONObject jsonObject = new JSONObject();
+        try {
+            String gameNameText = gameName.getText().toString().trim();
+            gameNameText = Normalizer.normalize(gameNameText, Normalizer.Form.NFD).replaceAll("\\p{InCombiningDiacriticalMarks}+", "");
+            jsonObject.put(TAG_NAME, gameNameText);
+
+            String gameDescriptionText = gameDescription.getText().toString().trim();
+            gameDescriptionText = Normalizer.normalize(gameDescriptionText, Normalizer.Form.NFD).replaceAll("\\p{InCombiningDiacriticalMarks}+", "");
+            jsonObject.put(TAG_DESCRIPTION, gameDescriptionText);
+
+            Geocoder geocoder = new Geocoder(CreateGameActivity.this, Locale.getDefault());
+            double latitude = QuestionsAdapter.GameQuestions.get(0).getLatitude();
+            double longitude = QuestionsAdapter.GameQuestions.get(0).getLongitude();
+            List<Address> addresses = geocoder.getFromLocation(latitude, longitude, 1);
+
+            String cityName = addresses.get(0).getAddressLine(1);
+            cityName = Normalizer.normalize(cityName, Normalizer.Form.NFD).replaceAll("\\p{InCombiningDiacriticalMarks}+", "");
+            jsonObject.put(TAG_CITY, cityName);
+
+            String countryName = addresses.get(0).getAddressLine(2);
+            countryName = Normalizer.normalize(countryName, Normalizer.Form.NFD).replaceAll("\\p{InCombiningDiacriticalMarks}+", "");
+
+            jsonObject.put(TAG_COUNTRY, countryName);
+
+            if(spinnerDifficulty.getSelectedItem() != null) {
+                jsonObject.put(TAG_DIFFICULTY, spinnerDifficulty.getSelectedItemId());
+            }
+
+            int duration = hourPicker.getValue() * 60 + minutesPicker.getValue();
+            jsonObject.put(TAG_DURATION, duration);
+            double rating = 0.0;
+            jsonObject.put(TAG_RATING, rating);
+            jsonObject.put(TAG_RATING_COUNTER, 0);
+            jsonObject.put(TAG_PICTURE, null);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        if(selectedImagePath != null && !selectedImagePath.isEmpty()) {
+            UUID uniqueId = UUID.randomUUID();
+            new BlobGettingStartedTask(uniqueId.toString(), selectedImagePath, jsonObject, this).execute();
+        }
+        else {
+            onTaskCompleted(jsonObject);
+        }
+    }
+
+    @Override
+    public void onTaskCompleted(JSONObject jsonObject) {
+
+        StringEntity entity = null;
+        try {
+            entity = new StringEntity(jsonObject.toString());
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+        }
+        entity.setContentType(new BasicHeader(HTTP.CONTENT_TYPE, "application/json"));
+
+        RestClient.post(getApplicationContext(), "games", entity, "application/json", new JsonHttpResponseHandler() {
+            @Override
+            public void onStart() {
+            }
+
+            @Override
+            public void onSuccess(int statusCode, Header[] headers, JSONObject response) {
+                // If the response is JSONObject instead of expected JSONArray
+                //Toast.makeText(CreateGameActivity.this, "Your game was created!", Toast.LENGTH_LONG).show();
+                try {
+                    String id = response.getString(TAG_ID);
+                    postQuestionsToGame(Integer.parseInt(id));
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+            }
+
+            @Override
+            public void onSuccess(int statusCode, Header[] headers, JSONArray games) {
+                //Toast.makeText(CreateGameActivity.this, "Your game was created!", Toast.LENGTH_LONG).show();
+
+                //showProgress(false);
+            }
+
+            @Override
+            public void onFailure(int statusCode, Header[] headers,
+                                  Throwable throwable, JSONArray errorResponse) {
+                super.onFailure(statusCode, headers, throwable, errorResponse);
+                Toast.makeText(CreateGameActivity.this, "Your could NOT be created!", Toast.LENGTH_LONG).show();
+
+            }
+
+            @Override
+            public void onFailure(int statusCode, Header[] headers,
+                                  Throwable throwable, JSONObject errorResponse) {
+                super.onFailure(statusCode, headers, throwable, errorResponse);
+                Toast.makeText(CreateGameActivity.this, "Your could NOT be created!", Toast.LENGTH_LONG).show();
+            }
+        });
+    }
+    private boolean createdQuestions;
+    private int qCounter = 0;
+
+    private StringEntity getStringEntity(int id, double score) {
+        JSONObject jsonObject = new JSONObject();
+        StringEntity entity = null;
+
+        try {
+            QuestionContent.QuestionItem currentQuestion = QuestionsAdapter.GameQuestions.get(qCounter);
+            jsonObject.put(TAG_QUESTION_GAME_ID, id);
+            jsonObject.put(TAG_QUESTION_LATITUDE, currentQuestion.getLatitude());
+            jsonObject.put(TAG_QUESTION_LONGITUDE, currentQuestion.getLongitude());
+            jsonObject.put(TAG_QUESTION_TEXT, currentQuestion.getQuestionText());
+            jsonObject.put(TAG_QUESTION_TEXT_ANSWER, currentQuestion.getTextAnswer());
+            jsonObject.put(TAG_QUESTION_SCORE, score);
+            jsonObject.put(TAG_QUESTION_ANSWER_TYPE, 0);
+            jsonObject.put(TAG_QUESTION_ANSWER, "empty");
+
+            entity = new StringEntity(jsonObject.toString());
+            entity.setContentType(new BasicHeader(HTTP.CONTENT_TYPE, "application/json"));
+        } catch (Exception ex) {
+        }
+
+        return entity;
+    }
+
+    private void postQuestionsToGame(final int id)
+    {
+        final double score = 100 / QuestionsAdapter.GameQuestions.size();
+
+        if(QuestionsAdapter.GameQuestions.size() > 0) {
+
+                StringEntity entity = getStringEntity(id, score);
+            if(entity != null) {
+                RestClient.post(getApplicationContext(), "questions", entity, "application/json", new JsonHttpResponseHandler() {
+                    @Override
+                    public void onStart() {
+                    }
+
+                    @Override
+                    public void onSuccess(int statusCode, Header[] headers, JSONObject response) {
+                        if (qCounter < QuestionsAdapter.GameQuestions.size() - 1) {
+                            qCounter++;
+                            postQuestionsToGame(id);
+                        }
+                        // If the response is JSONObject instead of expected JSONArray
+                        //Toast.makeText(CreateGameActivity.this, "Your game was created!", Toast.LENGTH_LONG).show();
+                    }
+
+                    @Override
+                    public void onSuccess(int statusCode, Header[] headers, JSONArray games) {
+                        //Toast.makeText(CreateGameActivity.this, "Your game was created!", Toast.LENGTH_LONG).show();
+
+                        //showProgress(false);
+                    }
+
+                    @Override
+                    public void onFailure(int statusCode, Header[] headers,
+                                          Throwable throwable, JSONArray errorResponse) {
+                        super.onFailure(statusCode, headers, throwable, errorResponse);
+                        Toast.makeText(CreateGameActivity.this, "Your game could NOT be created!", Toast.LENGTH_LONG).show();
+                        createdQuestions = false;
+                    }
+
+                    @Override
+                    public void onFailure(int statusCode, Header[] headers,
+                                          Throwable throwable, JSONObject errorResponse) {
+                        super.onFailure(statusCode, headers, throwable, errorResponse);
+                        Toast.makeText(CreateGameActivity.this, "Your game could NOT be created!", Toast.LENGTH_LONG).show();
+                        createdQuestions = false;
+                    }
+                });
+
+                if (createdQuestions && qCounter == QuestionsAdapter.GameQuestions.size() - 1) {
+                    Toast.makeText(CreateGameActivity.this, "Your game was created!", Toast.LENGTH_LONG).show();
+                    QuestionsAdapter.GameQuestions.clear();
+                }
+            }
+        }
     }
 }
