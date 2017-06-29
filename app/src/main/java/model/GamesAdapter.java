@@ -67,7 +67,7 @@ public class GamesAdapter extends RecyclerView.Adapter<GamesAdapter.MyViewHolder
                     Picasso.with(context).load(uri).networkPolicy(NetworkPolicy.NO_CACHE).memoryPolicy(MemoryPolicy.NO_CACHE, MemoryPolicy.NO_STORE).into(holder.gamePicture);
                 } catch (Exception e) {
                     Bitmap icon = BitmapFactory.decodeResource(holder.gamePicture.getContext().getResources(),
-                            R.mipmap.investi4);
+                            R.drawable.game_default);
                     holder.gamePicture.setImageBitmap(icon);
                     // this set the default img source if the path provided in .load is null or some error happened on download.
                 }

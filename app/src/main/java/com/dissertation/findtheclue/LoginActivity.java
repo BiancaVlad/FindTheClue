@@ -535,54 +535,6 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
         }
     }
 
-    public void callToSaveToken(HttpResponse httpResponse)
-    {
-        if(httpResponse.getStatusLine().getStatusCode()==200)
-        {
-            RestClient.get("token", null, new JsonHttpResponseHandler() {
-                        @Override
-                        public void onStart() {
-                        }
-
-                        @Override
-                        public void onSuccess(int statusCode, Header[] headers, JSONObject response) {
-
-                            // If the response is JSONObject instead of expected JSONArray
-                        }
-                @Override
-                public void onFailure(int statusCode, Header[] headers,
-                                      Throwable throwable, JSONObject errorResponse) {
-                    super.onFailure(statusCode, headers, throwable, errorResponse);
-                }
-            });
-
-        }
-            /*String getToken = "http://findthecluebe.azurewebsites.net/Token";
-
-            HttpGet request = new HttpGet();
-            HttpClient httpclient = new DefaultHttpClient();
-            try {
-            URI website = new URI(getToken);
-            request.setURI(website);
-            HttpResponse response = httpclient.execute((HttpUriRequest) request);
-            if(response.getStatusLine().getStatusCode()==200){
-                String server_response = null;
-                server_response = EntityUtils.toString((HttpEntity) response.getEntity());
-
-                TokenSaver.setToken(getApplicationContext(), server_response);
-
-                Log.i("Server response", server_response );
-            } else {
-                Log.i("Server response", "Failed to get server response" );
-            }
-            } catch (IOException e) {
-                e.printStackTrace();
-            } catch (Exception ex) {
-            ex.printStackTrace();
-            }
-        }*/
-    }
-
     public Map<String, String> getQueryMap(String query)
     {
         String[] params = query.split("&");

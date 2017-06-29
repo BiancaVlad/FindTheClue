@@ -71,6 +71,7 @@ import model.QuestionContent;
 import model.QuestionsAdapter;
 import utils.OnTaskCompleted;
 import utils.RestClient;
+import utils.TokenSaver;
 
 public class CreateGameActivity extends SideMenuActivity
 implements OnTaskCompleted{
@@ -145,8 +146,8 @@ implements OnTaskCompleted{
                 {
                     QuestionsAdapter.GameQuestions.clear();
                     qCounter = 0;
-                    Intent intent = new Intent(getApplicationContext(), GamesListActivity.class);
-                    getApplicationContext().startActivity(intent);
+                    Intent intent = new Intent(v.getContext(), GamesListActivity.class);
+                    v.getContext().startActivity(intent);
                     finish();
                 }
             }
@@ -207,7 +208,7 @@ implements OnTaskCompleted{
                     return;
                 }
 
-                addGame.setEnabled(false);
+                addGame.setVisibility(View.INVISIBLE);
 
                 try {
                     addGameListCall();
@@ -301,7 +302,7 @@ implements OnTaskCompleted{
             }
         });
 
-        removeQuestionBtn = (AppCompatButton) findViewById(R.id.remove_question_btn);
+        /*removeQuestionBtn = (AppCompatButton) findViewById(R.id.remove_question_btn);
 
         removeQuestionBtn.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -371,7 +372,7 @@ implements OnTaskCompleted{
                 }
                 return false;
             }
-        });
+        });*/
     }
 
     @Override
@@ -620,6 +621,7 @@ implements OnTaskCompleted{
             e.printStackTrace();
         }
         entity.setContentType(new BasicHeader(HTTP.CONTENT_TYPE, "application/json"));
+        String currentToken = TokenSaver.getToken(getApplicationContext());
 
         RestClient.post(getApplicationContext(), "games", entity, "application/json", new JsonHttpResponseHandler() {
             @Override
@@ -649,7 +651,7 @@ implements OnTaskCompleted{
             public void onFailure(int statusCode, Header[] headers,
                                   Throwable throwable, JSONArray errorResponse) {
                 super.onFailure(statusCode, headers, throwable, errorResponse);
-                Toast.makeText(CreateGameActivity.this, "Your could NOT be created!", Toast.LENGTH_LONG).show();
+                Toast.makeText(CreateGameActivity.this, "Your game could NOT be created!", Toast.LENGTH_LONG).show();
 
             }
 
@@ -657,11 +659,11 @@ implements OnTaskCompleted{
             public void onFailure(int statusCode, Header[] headers,
                                   Throwable throwable, JSONObject errorResponse) {
                 super.onFailure(statusCode, headers, throwable, errorResponse);
-                Toast.makeText(CreateGameActivity.this, "Your could NOT be created!", Toast.LENGTH_LONG).show();
+                Toast.makeText(CreateGameActivity.this, "Your game could NOT be created!", Toast.LENGTH_LONG).show();
             }
-        });
+        }, currentToken);
     }
-    private boolean createdQuestions;
+    private boolean createdQuestions=true;
     private int qCounter = 0;
 
     private StringEntity getStringEntity(int id, double score) {
@@ -680,6 +682,7 @@ implements OnTaskCompleted{
             jsonObject.put(TAG_QUESTION_ANSWER, "empty");
 
             entity = new StringEntity(jsonObject.toString());
+
             entity.setContentType(new BasicHeader(HTTP.CONTENT_TYPE, "application/json"));
         } catch (Exception ex) {
         }
@@ -689,11 +692,23 @@ implements OnTaskCompleted{
 
     private void postQuestionsToGame(final int id)
     {
-        final double score = 100 / QuestionsAdapter.GameQuestions.size();
+        final int score = 100 / QuestionsAdapter.GameQuestions.size();
+        String currentToken = TokenSaver.getToken(getApplicationContext());
 
         if(QuestionsAdapter.GameQuestions.size() > 0) {
+            int nrQ = QuestionsAdapter.GameQuestions.size();
+            int diff = 100 - (nrQ * score);
+            StringEntity entity;
 
-                StringEntity entity = getStringEntity(id, score);
+            if(qCounter == 0)
+            {
+                entity = getStringEntity(id, score + diff);
+            }
+            else
+            {
+                entity = getStringEntity(id, score);
+            }
+
             if(entity != null) {
                 RestClient.post(getApplicationContext(), "questions", entity, "application/json", new JsonHttpResponseHandler() {
                     @Override
@@ -732,7 +747,7 @@ implements OnTaskCompleted{
                         Toast.makeText(CreateGameActivity.this, "Your game could NOT be created!", Toast.LENGTH_LONG).show();
                         createdQuestions = false;
                     }
-                });
+                }, currentToken);
 
                 if (createdQuestions && qCounter == QuestionsAdapter.GameQuestions.size() - 1) {
                     Toast.makeText(CreateGameActivity.this, "Your game was created!", Toast.LENGTH_LONG).show();

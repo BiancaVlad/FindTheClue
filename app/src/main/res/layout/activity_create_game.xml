@@ -127,7 +127,7 @@
                     android:backgroundTint="@android:color/darker_gray"
                     android:background="@mipmap/ic_add_black_24dp"/>
 
-                <android.support.v7.widget.AppCompatButton
+                <!--<android.support.v7.widget.AppCompatButton
                     android:id="@+id/remove_question_btn"
                     android:layout_width="50dp"
                     android:layout_height="50dp"
@@ -149,7 +149,7 @@
                     android:layout_height="50dp"
                     android:backgroundTintMode="src_atop"
                     android:backgroundTint="@android:color/darker_gray"
-                    android:background="@mipmap/ic_keyboard_arrow_down_black_24dp"/>
+                    android:background="@mipmap/ic_keyboard_arrow_down_black_24dp"/>-->
             </LinearLayout>
         </LinearLayout>
 

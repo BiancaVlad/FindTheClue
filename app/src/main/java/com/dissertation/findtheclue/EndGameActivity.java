@@ -96,6 +96,8 @@ public class EndGameActivity extends AppCompatActivity {
                     currentGame.setRating(ratingValue);
                     currentGame.setRatingCounter(ratingCounter);
 
+                    String currentToken = TokenSaver.getToken(getApplicationContext());
+
                     try {
                         HttpClient httpclient = new DefaultHttpClient();
                         HttpPut httpPUT = new
@@ -117,6 +119,7 @@ public class EndGameActivity extends AppCompatActivity {
                         httpPUT.setEntity(se);
                         httpPUT.setHeader("Accept", "application/json");
                         httpPUT.setHeader("Content-type", "application/json");
+                        httpPUT.setHeader("authorization", "bearer " + currentToken);
                         HttpResponse httpResponse = httpclient.execute(httpPUT);
                     } catch (Exception e) {
                         Log.d("InputStream", e.getLocalizedMessage());

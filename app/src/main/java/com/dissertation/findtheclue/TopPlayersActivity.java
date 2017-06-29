@@ -30,11 +30,12 @@ import model.PlayersAdapter;
 import model.PlayersContent;
 import utils.RestClient;
 import utils.ServiceHandler;
+import utils.TokenSaver;
 
 public class TopPlayersActivity extends SideMenuActivity {
 
     // URL to get contacts JSON
-    private static String url = "http://findtheclue.azurewebsites.net/api/players";
+    private static String url = "http://findthecluebe.azurewebsites.net/api/account/";
 
     //to do: add the names of the table columns
     // JSON Node names
@@ -81,7 +82,9 @@ public class TopPlayersActivity extends SideMenuActivity {
 
     private void getTopPlayersList() throws JSONException {
         {
-            RestClient.get("players", null, new JsonHttpResponseHandler() {
+            String currentToken = TokenSaver.getToken(getApplicationContext());
+
+            RestClient.get("account/users", null, new JsonHttpResponseHandler() {
                 @Override
                 public void onStart() {
                 }
@@ -98,18 +101,20 @@ public class TopPlayersActivity extends SideMenuActivity {
                         JSONObject g = null;
                         try {
                             g = players.getJSONObject(i);
-                            String id = g.getString(TAG_ID);
-                            String first_name = g.getString(TAG_FIRST_NAME);
-                            String last_name = g.getString(TAG_LAST_NAME);
-                            String email = g.getString(TAG_EMAIL);
-                            String phone_number = g.getString(TAG_PHONE_NUMBER);
-                            String password = g.getString(TAG_PASSWORD);
-                            String score = g.getString(TAG_SCORE);
-                            String profile_picture = g.getString(TAG_PROFILE_PICTURE);
+                            //String id = g.getString(TAG_ID);
+                            //String first_name = g.getString(TAG_FIRST_NAME);
+                            String name = g.getString("Name");
+                            //String email = g.getString(TAG_EMAIL);
+                            //String phone_number = g.getString(TAG_PHONE_NUMBER);
+                            //String password = g.getString(TAG_PASSWORD);
+                            String score = g.getString("Points");
+                            String profile_picture = g.getString("ProfileImageUrl");
 
-                            PlayersContent.ITEMS.add(new PlayersContent.PlayerItem(Integer.parseInt(id), first_name, last_name, email, phone_number, password, Double.parseDouble(score), profile_picture));
+                            if(name != null && name != "null" && !name.isEmpty()) {
+                                PlayersContent.ITEMS.add(new PlayersContent.PlayerItem(name, Double.parseDouble(score), ""));
 
-                        } catch (JSONException e) {
+                            }
+                            } catch (JSONException e) {
                             e.printStackTrace();
                         }
 
@@ -134,7 +139,7 @@ public class TopPlayersActivity extends SideMenuActivity {
                                       Throwable throwable, JSONObject errorResponse) {
                     super.onFailure(statusCode, headers, throwable, errorResponse);
                 }
-            });
+            }, currentToken);
         }
     }
 

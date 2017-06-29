@@ -125,6 +125,9 @@ public class AddQuestionActivity extends SideMenuActivity
                 if (marker != null) {
                     marker.remove();
                 }
+
+                latitude = place.getLatLng().latitude;
+                longitude = place.getLatLng().longitude;
                 marker = mMap.addMarker(new MarkerOptions().position(place.getLatLng()).title(place.getAddress().toString())
                         .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_VIOLET)));
                 mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(marker.getPosition(), 15f));

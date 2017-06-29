@@ -83,14 +83,18 @@
      App Indexing.  See https://g.co/AppIndexing/AndroidStudio for more information.
         -->
 
-        <activity android:name=".MainActivity" />
-        <activity android:name=".SignUpActivity" />
+        <activity android:name=".MainActivity"
+            />
+        <activity android:name=".SignUpActivity"
+            android:label="Sign up"/>
         <activity
             android:name=".QuestionActivity"
-            android:theme="@style/CustomActionBarTheme.NoActionBar" />
+            android:theme="@style/CustomActionBarTheme.NoActionBar"
+            android:label="Answer Question"/>
         <activity
             android:name=".GamesListActivity"
-            android:theme="@style/CustomActionBarTheme.NoActionBar">
+            android:theme="@style/CustomActionBarTheme.NoActionBar"
+            android:label="Find The Clue">
             <!--<intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -100,10 +104,12 @@
         <activity
             android:name=".PlayGameActivity"
             android:launchMode="singleInstance"
-            android:theme="@style/CustomActionBarTheme.NoActionBar" />
+            android:theme="@style/CustomActionBarTheme.NoActionBar"
+            android:label="Play Game"/>
         <activity
             android:name=".EndGameActivity"
-            android:theme="@style/CustomActionBarTheme.NoActionBar" />
+            android:theme="@style/CustomActionBarTheme.NoActionBar"
+            android:label="Game Finished"/>
         <activity
             android:name=".MapsActivity"
             android:label="@string/title_activity_maps"
@@ -114,23 +120,27 @@
             android:theme="@style/CustomActionBarTheme.NoActionBar" />
         <activity
             android:name=".TopPlayersActivity"
-            android:theme="@style/CustomActionBarTheme.NoActionBar" />
+            android:theme="@style/CustomActionBarTheme.NoActionBar"
+            android:label="Top Players"/>
         <activity
             android:name=".CreateGameActivity"
-            android:label="@string/title_activity_create_game"
-            android:theme="@style/CustomActionBarTheme.NoActionBar" />
+            android:label="CreateGame"
+            android:theme="@style/CustomActionBarTheme.NoActionBar"
+            />
         <activity
             android:name=".AddQuestionActivity"
+            android:label="Add Question"
             android:theme="@style/CustomActionBarTheme.NoActionBar">
             <meta-data
                 android:name="com.google.android.geo.api_key"
                 android:value="@string/google_maps_key" />
         </activity>
-        <activity android:name=".AboutActivity" >
+        <activity android:name=".AboutActivity"
+            android:label="About Find the Clue">
         </activity>
         <activity
             android:name=".TermsAndConditionsActivity"
-            android:label="@string/title_activity_terms_and_conditions">
+            android:label="Terms and Conditions">
         </activity>
 
     </application>

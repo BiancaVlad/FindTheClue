@@ -28,6 +28,7 @@ import org.json.JSONObject;
 import model.GamesAdapter;
 import model.GamesContent;
 import utils.RestClient;
+import utils.TokenSaver;
 
 public class GamesListActivity extends SideMenuActivity {
 
@@ -173,6 +174,8 @@ public class GamesListActivity extends SideMenuActivity {
     }
 
     public void getGameListCall(final boolean refresh) throws JSONException {
+        String currentToken = TokenSaver.getToken(getApplicationContext());
+
         RestClient.get("games", null, new JsonHttpResponseHandler() {
             @Override
             public void onStart() {
@@ -230,7 +233,7 @@ public class GamesListActivity extends SideMenuActivity {
                                   Throwable throwable, JSONObject errorResponse) {
                 super.onFailure(statusCode, headers, throwable, errorResponse);
             }
-        });
+        }, currentToken);
     }
 
     @Override

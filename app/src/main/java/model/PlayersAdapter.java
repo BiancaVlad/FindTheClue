@@ -52,18 +52,20 @@ public class PlayersAdapter extends RecyclerView.Adapter<PlayersAdapter.MyViewHo
     public void onBindViewHolder(MyViewHolder holder, int position) {
         PlayersContent.PlayerItem player = playerItems.get(position);
 
-        String profilePic = player.getProfile_picture();
+/*        String profilePic = player.getProfile_picture();
         if(profilePic != null && profilePic != "null" && !profilePic.isEmpty()) {
             byte[] decodedByte = Base64.decode(player.getProfile_picture(), Base64.DEFAULT);
             Bitmap bmp = BitmapFactory.decodeByteArray(decodedByte, 0, decodedByte.length);
             holder.profileImage.setImageBitmap(bmp);
         }
-        else {
+        else {*/
 
             holder.profileImage.setImageResource(R.mipmap.ic_face_black_24dp);
-        }
+       /* }*/
 
-        holder.userName.setText(player.getFirst_name());
+        if(player.getName() != null) {
+            holder.userName.setText(player.getName());
+        }
         holder.userScore.setText(Double.toString(player.getScore()));
     }
 
